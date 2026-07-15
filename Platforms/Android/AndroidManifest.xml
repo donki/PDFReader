@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+	<!--
+		PDF Reader no declara ningun permiso (constitucion, seccion 5: minimo privilegio).
+		Los documentos se eligen con el selector del sistema (Storage Access Framework),
+		que concede acceso solo al archivo elegido, y la app no accede a la red.
+	-->
+	<application android:allowBackup="true" android:icon="@mipmap/appicon" android:roundIcon="@mipmap/appicon_round" android:supportsRtl="true"></application>
+	<queries>
+		<!-- Permite resolver la aplicacion de correo desde la pantalla Acerca de. -->
+		<intent>
+			<action android:name="android.intent.action.SENDTO" />
+			<data android:scheme="mailto" />
+		</intent>
+	</queries>
+</manifest>

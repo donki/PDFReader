@@ -1,0 +1,36 @@
+# Artefactos de compilacion
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+*.log
+
+# Visual Studio / Rider / VS Code
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userprefs
+*.lscache
+*.Backup.tmp
+
+# .NET
+project.lock.json
+project.fragment.lock.json
+artifacts/
+*.nupkg
+
+# Firma: nunca versionar material de claves (constitucion, seccion 5)
+*.keystore
+*.jks
+*.p12
+*.pfx
+google-play-service-account*.json
+
+# Sistema operativo
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store

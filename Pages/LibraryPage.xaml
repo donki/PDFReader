@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:PDFReader.Models"
+             x:Class="PDFReader.Pages.LibraryPage"
+             Style="{StaticResource AppPage}"
+             NavigationPage.HasNavigationBar="False">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <!-- Cabecera -->
+        <Border Grid.Row="0"
+                Style="{StaticResource Card}"
+                Margin="16,16,16,8">
+            <Grid ColumnDefinitions="Auto,*,Auto" Padding="18,16" ColumnSpacing="14">
+                <Label Grid.Column="0"
+                       Text="📕"
+                       FontSize="34"
+                       VerticalOptions="Center" />
+
+                <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                    <Label x:Name="AppNameLabel"
+                           Style="{StaticResource CardTitle}"
+                           FontSize="20" />
+                    <Label x:Name="TaglineLabel"
+                           Style="{StaticResource SecondaryText}"
+                           FontSize="12" />
+                </VerticalStackLayout>
+
+                <Button Grid.Column="2"
+                        Text="ℹ"
+                        Style="{StaticResource ReaderToolButton}"
+                        Clicked="OnAboutClicked"
+                        VerticalOptions="Center" />
+            </Grid>
+        </Border>
+
+        <!-- Lista de documentos -->
+        <CollectionView Grid.Row="1"
+                        x:Name="DocumentsView"
+                        Margin="16,8"
+                        SelectionMode="None">
+
+            <CollectionView.Header>
+                <Label x:Name="RecentLabel"
+                       Style="{StaticResource SecondaryText}"
+                       FontAttributes="Bold"
+                       Margin="4,8,4,10" />
+            </CollectionView.Header>
+
+            <CollectionView.EmptyView>
+                <VerticalStackLayout Padding="30,60" Spacing="12" VerticalOptions="Center">
+                    <Label Text="📂"
+                           FontSize="56"
+                           HorizontalOptions="Center"
+                           Opacity="0.55" />
+                    <Label x:Name="EmptyTitleLabel"
+                           Style="{StaticResource CardTitle}"
+                           HorizontalTextAlignment="Center" />
+                    <Label x:Name="EmptyHintLabel"
+                           Style="{StaticResource SecondaryText}"
+                           HorizontalTextAlignment="Center" />
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
+
+            <CollectionView.ItemsLayout>
+                <LinearItemsLayout Orientation="Vertical" ItemSpacing="10" />
+            </CollectionView.ItemsLayout>
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:DocumentListItem">
+                    <Border Style="{StaticResource Card}">
+                        <Grid ColumnDefinitions="Auto,*,Auto" Padding="14,12" ColumnSpacing="12">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnDocumentTapped" />
+                            </Grid.GestureRecognizers>
+
+                            <Label Grid.Column="0"
+                                   Text="📄"
+                                   FontSize="28"
+                                   VerticalOptions="Center" />
+
+                            <VerticalStackLayout Grid.Column="1" Spacing="3" VerticalOptions="Center">
+                                <Label Text="{Binding DisplayName}"
+                                       Style="{StaticResource BodyText}"
+                                       FontAttributes="Bold"
+                                       LineBreakMode="MiddleTruncation"
+                                       MaxLines="1" />
+                                <Label Text="{Binding Details}"
+                                       Style="{StaticResource SecondaryText}"
+                                       FontSize="12" />
+                                <Label Text="{Binding LastOpened}"
+                                       Style="{StaticResource SecondaryText}"
+                                       FontSize="11"
+                                       Opacity="0.8" />
+                            </VerticalStackLayout>
+
+                            <Button Grid.Column="2"
+                                    Text="✕"
+                                    Style="{StaticResource ReaderToolButton}"
+                                    FontSize="16"
+                                    WidthRequest="40"
+                                    HeightRequest="40"
+                                    Clicked="OnRemoveClicked"
+                                    VerticalOptions="Center" />
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- Accion principal -->
+        <Grid Grid.Row="2" Padding="16,8,16,20">
+            <Button x:Name="OpenButton"
+                    Style="{StaticResource PrimaryButton}"
+                    Clicked="OnOpenPdfClicked" />
+        </Grid>
+
+        <!-- Indicador de importacion -->
+        <Grid Grid.Row="0" Grid.RowSpan="3"
+              x:Name="BusyOverlay"
+              IsVisible="False"
+              BackgroundColor="#99000000">
+            <VerticalStackLayout VerticalOptions="Center" Spacing="14">
+                <ActivityIndicator x:Name="BusyIndicator"
+                                   Color="White"
+                                   HorizontalOptions="Center" />
+                <Label x:Name="BusyLabel"
+                       TextColor="White"
+                       FontSize="14"
+                       HorizontalOptions="Center" />
+            </VerticalStackLayout>
+        </Grid>
+
+    </Grid>
+</ContentPage>

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="PDFReader.Pages.ReaderPage"
+             BackgroundColor="{AppThemeBinding Light={StaticResource PdfCanvasLight}, Dark={StaticResource PdfCanvasDark}}">
+
+    <Grid RowDefinitions="*,Auto">
+
+        <!-- Lienzo de la pagina -->
+        <ScrollView Grid.Row="0"
+                    x:Name="PageScroll"
+                    Orientation="Both"
+                    HorizontalScrollBarVisibility="Never"
+                    VerticalScrollBarVisibility="Default">
+            <Grid x:Name="PageHost" Padding="8">
+                <Grid.GestureRecognizers>
+                    <PinchGestureRecognizer PinchUpdated="OnPinchUpdated" />
+                </Grid.GestureRecognizers>
+
+                <Image x:Name="PageImage"
+                       Aspect="AspectFit"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center" />
+            </Grid>
+        </ScrollView>
+
+        <!-- Indicador de carga -->
+        <VerticalStackLayout Grid.Row="0"
+                             x:Name="BusyPanel"
+                             IsVisible="False"
+                             VerticalOptions="Center"
+                             HorizontalOptions="Center"
+                             Spacing="10">
+            <ActivityIndicator x:Name="BusyIndicator"
+                               Color="{StaticResource PdfPrimary}"
+                               HorizontalOptions="Center" />
+            <Label x:Name="BusyLabel"
+                   Style="{StaticResource SecondaryText}"
+                   HorizontalOptions="Center" />
+        </VerticalStackLayout>
+
+        <!-- Barra de herramientas -->
+        <Border Grid.Row="1"
+                Style="{StaticResource Card}"
+                Margin="8,4,8,8">
+            <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto"
+                  Padding="6,4"
+                  ColumnSpacing="2">
+
+                <Button Grid.Column="0"
+                        x:Name="PreviousButton"
+                        Text="◀"
+                        Style="{StaticResource ReaderToolButton}"
+                        Clicked="OnPreviousClicked" />
+
+                <Button Grid.Column="1"
+                        x:Name="ZoomOutButton"
+                        Text="－"
+                        Style="{StaticResource ReaderToolButton}"
+                        Clicked="OnZoomOutClicked" />
+
+                <Label Grid.Column="2"
+                       x:Name="PageLabel"
+                       Style="{StaticResource BodyText}"
+                       FontSize="13"
+                       HorizontalTextAlignment="Center"
+                       VerticalTextAlignment="Center">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnGoToPageTapped" />
+                    </Label.GestureRecognizers>
+                </Label>
+
+                <Button Grid.Column="3"
+                        x:Name="ZoomInButton"
+                        Text="＋"
+                        Style="{StaticResource ReaderToolButton}"
+                        Clicked="OnZoomInClicked" />
+
+                <Button Grid.Column="4"
+                        x:Name="NextButton"
+                        Text="▶"
+                        Style="{StaticResource ReaderToolButton}"
+                        Clicked="OnNextClicked" />
+            </Grid>
+        </Border>
+
+    </Grid>
+</ContentPage>
