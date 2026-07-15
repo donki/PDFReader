@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="PDFReader.Pages.AboutPage"
+             Style="{StaticResource AppPage}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="14">
+
+            <!-- Cabecera -->
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Padding="24" Spacing="8">
+                    <Label Text="📕"
+                           FontSize="58"
+                           HorizontalOptions="Center" />
+
+                    <Label x:Name="AppNameLabel"
+                           Style="{StaticResource CardTitle}"
+                           FontSize="26"
+                           HorizontalOptions="Center" />
+
+                    <Label x:Name="VersionLabel"
+                           Style="{StaticResource SecondaryText}"
+                           HorizontalOptions="Center" />
+
+                    <Label x:Name="TaglineLabel"
+                           Style="{StaticResource SecondaryText}"
+                           FontSize="12"
+                           HorizontalTextAlignment="Center"
+                           Margin="0,4,0,0" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Contacto -->
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Padding="20,18" Spacing="12">
+                    <Label x:Name="ContactTitleLabel" Style="{StaticResource CardTitle}" />
+
+                    <Button x:Name="ContactButton"
+                            Style="{StaticResource OutlineButton}"
+                            Clicked="OnContactEmailClicked" />
+
+                    <Label x:Name="ContactHintLabel"
+                           Style="{StaticResource SecondaryText}"
+                           FontSize="12"
+                           HorizontalOptions="Center" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Donaciones -->
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Padding="20,18" Spacing="12">
+                    <Label x:Name="SupportTitleLabel"
+                           Style="{StaticResource CardTitle}"
+                           TextColor="{StaticResource PdfAccent}" />
+
+                    <Button x:Name="SupportButton"
+                            BackgroundColor="{StaticResource PdfAccent}"
+                            TextColor="White"
+                            FontSize="14"
+                            CornerRadius="10"
+                            HeightRequest="46"
+                            Clicked="OnDonationClicked" />
+
+                    <Label x:Name="SupportHintLabel"
+                           Style="{StaticResource SecondaryText}"
+                           FontSize="12"
+                           HorizontalTextAlignment="Center" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Idioma -->
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Padding="20,18" Spacing="12">
+                    <Label x:Name="LanguageTitleLabel" Style="{StaticResource CardTitle}" />
+
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <Button Grid.Column="0"
+                                x:Name="SpanishButton"
+                                Text="Español"
+                                FontSize="14"
+                                CornerRadius="10"
+                                HeightRequest="46"
+                                Clicked="OnSpanishClicked" />
+
+                        <Button Grid.Column="1"
+                                x:Name="EnglishButton"
+                                Text="English"
+                                FontSize="14"
+                                CornerRadius="10"
+                                HeightRequest="46"
+                                Clicked="OnEnglishClicked" />
+                    </Grid>
+
+                    <Label x:Name="LanguageHintLabel"
+                           Style="{StaticResource SecondaryText}"
+                           FontSize="12"
+                           HorizontalOptions="Center" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Privacidad -->
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Padding="20,18" Spacing="10">
+                    <Label x:Name="PrivacyTitleLabel" Style="{StaticResource CardTitle}" />
+                    <Label x:Name="PrivacyTextLabel" Style="{StaticResource BodyText}" FontSize="13" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Licencia -->
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Padding="20,18" Spacing="10">
+                    <Label x:Name="LicenseTitleLabel" Style="{StaticResource CardTitle}" />
+                    <Label x:Name="LicenseTextLabel" Style="{StaticResource BodyText}" FontSize="13" />
+                    <Label Text="MIT License · Copyright © 2026 PDF Reader"
+                           Style="{StaticResource SecondaryText}"
+                           FontSize="11" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Aviso legal -->
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Padding="20,18" Spacing="12">
+                    <Label x:Name="LegalTitleLabel"
+                           Style="{StaticResource CardTitle}"
+                           TextColor="{StaticResource PdfLegal}" />
+
+                    <Label x:Name="LegalText1Label" Style="{StaticResource BodyText}" FontSize="13" />
+                    <Label x:Name="LegalText2Label" Style="{StaticResource BodyText}" FontSize="13" />
+
+                    <Border BackgroundColor="{StaticResource PdfLegal}"
+                            Stroke="Transparent"
+                            Padding="12">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="8" />
+                        </Border.StrokeShape>
+                        <Label x:Name="LegalWarningLabel"
+                               FontSize="13"
+                               FontAttributes="Bold"
+                               TextColor="White"
+                               HorizontalOptions="Center" />
+                    </Border>
+                </VerticalStackLayout>
+            </Border>
+
+            <Button x:Name="BackButton"
+                    Style="{StaticResource PrimaryButton}"
+                    Clicked="OnBackClicked"
+                    Margin="0,4,0,16" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

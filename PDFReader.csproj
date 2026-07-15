@@ -1,0 +1,79 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net10.0-android36.0</TargetFrameworks>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>PDFReader</RootNamespace>
+    <UseMaui>true</UseMaui>
+    <SingleProject>true</SingleProject>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <MauiXamlInflator>SourceGen</MauiXamlInflator>
+
+    <!-- Display name -->
+    <ApplicationTitle>PDF Reader</ApplicationTitle>
+
+    <!-- App Identifier (constitucion seccion 4: com.socratic.[nombre-aplicacion]) -->
+    <ApplicationId>com.socratic.pdfreader</ApplicationId>
+
+    <!-- Versions (constitucion seccion 6) -->
+    <ApplicationDisplayVersion>2026.07.15.0</ApplicationDisplayVersion>
+    <ApplicationVersion>202607150</ApplicationVersion>
+
+    <!-- Accept Android SDK Licenses -->
+    <AcceptAndroidSDKLicenses>true</AcceptAndroidSDKLicenses>
+
+    <!-- Package Information -->
+    <PackageId>PDFReader</PackageId>
+    <Title>PDF Reader</Title>
+    <Product>PDF Reader</Product>
+    <Description>Lector de PDF para Android: sin conexion, sin permisos y con los documentos siempre en el dispositivo</Description>
+    <Copyright>Copyright © 2026 PDF Reader</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>pdf;reader;viewer;android;maui;dotnet</PackageTags>
+    <Authors>PDF Reader</Authors>
+    <Company>Socratic</Company>
+
+    <!-- Platform versions -->
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">24.0</SupportedOSPlatformVersion>
+
+    <!-- Android specific -->
+    <AndroidPackageFormat>apk</AndroidPackageFormat>
+    <TargetSdkVersion>36</TargetSdkVersion>
+    <AndroidUseLatestPlatformSdk>false</AndroidUseLatestPlatformSdk>
+    <AndroidCreatePackagePerAbi>false</AndroidCreatePackagePerAbi>
+
+    <AssemblyVersion>2026.07.15.0</AssemblyVersion>
+    <FileVersion>2026.07.15.0</FileVersion>
+  </PropertyGroup>
+
+  <!-- Release configuration for Android -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release' and $([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
+    <AndroidKeyStore>false</AndroidKeyStore>
+    <RunAOTCompilation>false</RunAOTCompilation>
+    <PublishTrimmed>true</PublishTrimmed>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- App Icon -->
+    <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#B3121E" />
+
+    <!-- Splash Screen -->
+    <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#B3121E" BaseSize="128,128" />
+
+    <!-- Images -->
+    <MauiImage Include="Resources\Images\*" />
+
+    <!-- Custom Fonts -->
+    <MauiFont Include="Resources\Fonts\*" />
+
+    <!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
+    <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
+  </ItemGroup>
+
+</Project>
