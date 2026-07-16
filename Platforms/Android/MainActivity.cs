@@ -23,6 +23,18 @@ namespace PDFReader;
     Categories = [Intent.CategoryDefault, Intent.CategoryBrowsable],
     DataSchemes = ["content", "file"],
     DataMimeType = "application/pdf")]
+// Plenty of file managers hand a PDF over as a generic binary instead of application/pdf, which
+// the filter above would miss. Match those by extension, and only by extension, so the app does
+// not offer itself for every unknown file on the device.
+// DataHost is required: Android ignores pathPattern unless the filter also declares a scheme AND
+// a host, and without it this filter would match every octet-stream file on the device.
+[IntentFilter(
+    [Intent.ActionView],
+    Categories = [Intent.CategoryDefault, Intent.CategoryBrowsable],
+    DataSchemes = ["content", "file"],
+    DataHost = "*",
+    DataMimeTypes = ["application/octet-stream", "application/x-pdf", "binary/octet-stream"],
+    DataPathPatterns = [".*\\\\.pdf", ".*\\\\.PDF"])]
 public class MainActivity : MauiAppCompatActivity
 {
     protected override void OnCreate(Bundle? savedInstanceState)

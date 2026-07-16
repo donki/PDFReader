@@ -93,7 +93,7 @@ public class LocalizationService : ILocalizationService
         ["last_opened_yesterday"] = "Ayer",
 
         // Lector
-        ["reader_page_of"] = "Página {0} de {1}",
+        ["reader_page_of"] = "{0} / {1}",
         ["loading_page"] = "Cargando página…",
         ["goto_title"] = "Ir a la página",
         ["goto_message"] = "Introduce un número entre 1 y {0}",
@@ -188,7 +188,7 @@ public class LocalizationService : ILocalizationService
         ["last_opened_yesterday"] = "Yesterday",
 
         // Reader
-        ["reader_page_of"] = "Page {0} of {1}",
+        ["reader_page_of"] = "{0} / {1}",
         ["loading_page"] = "Loading page…",
         ["goto_title"] = "Go to page",
         ["goto_message"] = "Enter a number between 1 and {0}",

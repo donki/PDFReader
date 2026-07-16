@@ -6,6 +6,26 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 sigue la sección 6 de la constitución: `ApplicationDisplayVersion` legible por el usuario y
 `ApplicationVersion` entero incremental para Play Store.
 
+## [2026.07.16.3] - 2026-07-16
+
+`versionCode` 202607163.
+
+### Corregido
+- **El zoom con gestos de pellizco no hacía nada.** `PinchGestureUpdatedEventArgs.Scale` es la
+  variación respecto a la actualización anterior, no respecto al inicio del gesto; el código
+  multiplicaba el zoom inicial por ese valor, que ronda 1, así que la vista previa se quedaba
+  clavada. Ahora se acumula.
+
+### Añadido
+- Segundo `intent-filter` para los gestores de ficheros que entregan un PDF como
+  `application/octet-stream` en vez de `application/pdf`: sin él la app no aparecía en "Abrir con"
+  desde esos gestores. Filtra por extensión, y declara `DataHost` porque Android **ignora
+  `pathPattern` si el filtro no declara también `scheme` y `host`**: sin host, el filtro se
+  ofrecería para cualquier fichero binario del dispositivo.
+
+### Cambiado
+- La paginación del lector muestra `1 / 10` en lugar de `Página 1 de 10`.
+
 ## [2026.07.16.2] - 2026-07-16
 
 `versionCode` 202607162.

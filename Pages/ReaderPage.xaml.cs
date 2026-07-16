@@ -28,6 +28,7 @@ public partial class ReaderPage : ContentPage
     private int _pageIndex;
     private double _zoom = MinZoom;
     private double _pinchStartZoom = MinZoom;
+    private double _pinchScale = 1.0;
 
     private IReadOnlyList<PdfTextMatch> _matches = [];
     private int _matchIndex = -1;
@@ -256,16 +257,21 @@ public partial class ReaderPage : ContentPage
         {
             case GestureStatus.Started:
                 _pinchStartZoom = _zoom;
+                _pinchScale = 1.0;
                 break;
 
             case GestureStatus.Running:
+                // e.Scale is the change since the PREVIOUS update, not since the gesture started,
+                // so it has to be accumulated. Multiplying the starting zoom by it directly left
+                // the preview pinned at roughly 1x and made the gesture look like it did nothing.
+                _pinchScale *= e.Scale;
+
                 // Scale the current bitmap for immediate feedback; the sharp render comes on release.
-                var preview = Math.Clamp(_pinchStartZoom * e.Scale, MinZoom, MaxZoom) / _zoom;
-                PageImage.Scale = preview;
+                PageImage.Scale = Math.Clamp(_pinchStartZoom * _pinchScale, MinZoom, MaxZoom) / _zoom;
                 break;
 
             case GestureStatus.Completed:
-                var target = PageImage.Scale * _zoom;
+                var target = Math.Clamp(_pinchStartZoom * _pinchScale, MinZoom, MaxZoom);
                 PageImage.Scale = 1;
                 await ApplyZoomAsync(target);
                 break;
