@@ -29,6 +29,17 @@ public partial class ReaderPage : ContentPage
     private double _zoom = MinZoom;
     private double _pinchStartZoom = MinZoom;
 
+    private IReadOnlyList<PdfTextMatch> _matches = [];
+    private int _matchIndex = -1;
+    private CancellationTokenSource? _searchCancellation;
+
+    /// <summary>
+    /// Password of a protected document, when the caller already asked for it during import.
+    /// It is kept in memory for this reading session only: storing it would put the key to the
+    /// user's document on disk (constitucion, seccion 5).
+    /// </summary>
+    public string? InitialPassword { get; set; }
+
     public ReaderPage(
         PdfDocumentEntry entry,
         ILibraryService library,
@@ -59,21 +70,24 @@ public partial class ReaderPage : ContentPage
         try
         {
             SetBusy(true);
-            _document = await _renderer.OpenAsync(_library.GetFilePath(_entry));
+            _document = await OpenWithPasswordRetryAsync();
+
+            if (_document is null)
+            {
+                // The user cancelled the password prompt, or the document could not be opened
+                // at all; either way the failure has already been explained.
+                SetBusy(false);
+                await Navigation.PopAsync();
+                return;
+            }
 
             if (_document.PageCount != _entry.PageCount)
                 await _library.SetPageCountAsync(_entry, _document.PageCount);
 
             if (_pageIndex >= _document.PageCount)
                 _pageIndex = 0;
-        }
-        catch (PdfOpenException ex)
-        {
-            _logger.LogWarning(ex, "Could not open {Document} ({Failure}).", _entry.DisplayName, ex.Failure);
-            SetBusy(false);
-            await ShowAlertAsync(_localization["error_open_title"], DescribeFailure(ex.Failure));
-            await Navigation.PopAsync();
-            return;
+
+            SearchButton.IsVisible = _document.SupportsTextSearch;
         }
         catch (Exception ex)
         {
@@ -87,9 +101,56 @@ public partial class ReaderPage : ContentPage
         await ShowPageAsync(_pageIndex);
     }
 
+    /// <summary>
+    /// Opens the document, asking for the password as many times as the user is willing to try.
+    /// Returns null when they cancel or the document cannot be opened for any other reason.
+    /// </summary>
+    private async Task<IPdfDocument?> OpenWithPasswordRetryAsync()
+    {
+        var path = _library.GetFilePath(_entry);
+        var password = InitialPassword;
+        var wrongPassword = false;
+
+        while (true)
+        {
+            try
+            {
+                return await _renderer.OpenAsync(path, password);
+            }
+            catch (PdfOpenException ex) when (ex.Failure is PdfOpenFailure.PasswordProtected or PdfOpenFailure.WrongPassword)
+            {
+                _logger.LogWarning("{Document} needs a password ({Failure}).", _entry.DisplayName, ex.Failure);
+
+                SetBusy(false);
+                password = await PasswordPromptPage.AskAsync(this, _localization, _entry.DisplayName, wrongPassword);
+                if (password is null)
+                    return null; // Cancelled: nothing to explain, the user knows.
+
+                wrongPassword = true; // Any further failure means the password they typed was wrong.
+                SetBusy(true);
+            }
+            catch (PdfOpenException ex)
+            {
+                _logger.LogWarning(ex, "Could not open {Document} ({Failure}).", _entry.DisplayName, ex.Failure);
+                SetBusy(false);
+                await ShowAlertAsync(_localization["error_open_title"], DescribeFailure(ex.Failure));
+                return null;
+            }
+        }
+    }
+
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
+
+        // The password prompt is modal, so it does not tear the reader down; only a real
+        // departure should dispose the document a pending search may still be walking.
+        if (Navigation.ModalStack.Count > 0)
+            return;
+
+        _searchCancellation?.Cancel();
+        _searchCancellation?.Dispose();
+        _searchCancellation = null;
 
         // The reader never pushes another page, so leaving means the document is no longer needed.
         _document?.Dispose();
@@ -116,7 +177,7 @@ public partial class ReaderPage : ContentPage
             var targetPixels = (int)Math.Round(widthDips * density);
 
             var aspectRatio = await _document.GetPageAspectRatioAsync(pageIndex);
-            var png = await _document.RenderPageAsync(pageIndex, targetPixels);
+            var png = await _document.RenderPageAsync(pageIndex, targetPixels, _matches);
 
             PageImage.Source = ImageSource.FromStream(() => new MemoryStream(png));
             PageImage.WidthRequest = widthDips;
@@ -247,9 +308,124 @@ public partial class ReaderPage : ContentPage
         await ShowPageAsync(page - 1);
     }
 
+    private void OnSearchClicked(object? sender, EventArgs e)
+    {
+        SearchBar.IsVisible = true;
+        SearchEntry.Placeholder = _localization["search_placeholder"];
+        SearchEntry.Focus();
+        UpdateSearchStatus();
+    }
+
+    private async void OnCloseSearchClicked(object? sender, EventArgs e)
+    {
+        await CancelSearchAsync();
+
+        SearchBar.IsVisible = false;
+        SearchEntry.Text = string.Empty;
+
+        if (_matches.Count > 0)
+        {
+            // Drop the highlights: leaving them painted after closing the search would be a lie.
+            _matches = [];
+            _matchIndex = -1;
+            await ShowPageAsync(_pageIndex);
+        }
+    }
+
+    private async void OnSearchSubmitted(object? sender, EventArgs e)
+    {
+        if (_document is null)
+            return;
+
+        var query = SearchEntry.Text?.Trim();
+        if (string.IsNullOrEmpty(query))
+            return;
+
+        await CancelSearchAsync();
+        _searchCancellation = new CancellationTokenSource();
+        var token = _searchCancellation.Token;
+
+        try
+        {
+            SearchStatusLabel.Text = _localization["searching"];
+            SetSearchNavigationEnabled(false);
+
+            _matches = await _document.SearchAsync(query, token);
+            _matchIndex = _matches.Count > 0 ? 0 : -1;
+
+            if (_matches.Count == 0)
+            {
+                UpdateSearchStatus();
+                await ShowAlertAsync(_localization["search"], _localization.Format("search_no_results", query));
+                return;
+            }
+
+            await GoToMatchAsync(0);
+        }
+        catch (OperationCanceledException)
+        {
+            // Superseded by a newer search; the newer one owns the UI now.
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Could not search {Document}.", _entry.DisplayName);
+            await ShowAlertAsync(_localization["error"], _localization.Format("error_render", ex.Message));
+        }
+    }
+
+    private async void OnPreviousMatchClicked(object? sender, EventArgs e)
+    {
+        if (_matches.Count > 0)
+            await GoToMatchAsync((_matchIndex - 1 + _matches.Count) % _matches.Count);
+    }
+
+    private async void OnNextMatchClicked(object? sender, EventArgs e)
+    {
+        if (_matches.Count > 0)
+            await GoToMatchAsync((_matchIndex + 1) % _matches.Count);
+    }
+
+    private async Task GoToMatchAsync(int matchIndex)
+    {
+        _matchIndex = matchIndex;
+        var match = _matches[matchIndex];
+
+        UpdateSearchStatus();
+
+        // Re-render even when the match is on the current page: the highlight is painted into
+        // the bitmap, so moving between matches on one page still needs a new render.
+        await ShowPageAsync(match.PageIndex);
+    }
+
+    private void UpdateSearchStatus()
+    {
+        SearchStatusLabel.Text = _matches.Count > 0
+            ? _localization.Format("search_match_of", _matchIndex + 1, _matches.Count)
+            : string.Empty;
+
+        SetSearchNavigationEnabled(_matches.Count > 0);
+    }
+
+    private void SetSearchNavigationEnabled(bool enabled)
+    {
+        PreviousMatchButton.IsEnabled = enabled;
+        NextMatchButton.IsEnabled = enabled;
+    }
+
+    private async Task CancelSearchAsync()
+    {
+        if (_searchCancellation is null)
+            return;
+
+        await _searchCancellation.CancelAsync();
+        _searchCancellation.Dispose();
+        _searchCancellation = null;
+    }
+
     private string DescribeFailure(PdfOpenFailure failure) => failure switch
     {
-        PdfOpenFailure.PasswordProtected => _localization["error_protected"],
+        PdfOpenFailure.PasswordProtected or PdfOpenFailure.WrongPassword => _localization["error_protected"],
+        PdfOpenFailure.PasswordUnsupported => _localization["error_password_unsupported"],
         PdfOpenFailure.InvalidDocument => _localization["error_not_pdf"],
         _ => _localization["error_missing_file"]
     };

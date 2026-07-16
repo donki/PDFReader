@@ -10,6 +10,8 @@ documentos siempre en el dispositivo.
 - **Navegación por páginas** con botones e **ir a página** concreta
 - **Zoom** con gestos de pellizco y con botones (hasta 4×)
 - **Continúa donde lo dejaste**: recuerda la última página de cada documento
+- **Búsqueda de texto** con navegación entre coincidencias y resaltado *(Android 15+)*
+- **PDF protegidos con contraseña** *(Android 15+)*
 
 ### 📚 Biblioteca
 - **Documentos recientes** ordenados por última lectura
@@ -118,8 +120,15 @@ También puedes abrir un PDF desde un gestor de archivos o el correo con **"Abri
 ## 🐛 Solución de problemas
 
 ### El PDF no se abre
-- Los PDF **protegidos con contraseña** no son compatibles: `PdfRenderer` no puede descifrarlos.
+- Los PDF **protegidos con contraseña** necesitan **Android 15 o posterior**: `LoadParams`, la API
+  que descifra el documento, llegó en esa versión. Por debajo, la aplicación lo explica en lugar de
+  fallar en silencio.
 - Un archivo dañado o que no sea un PDF se rechaza al importarlo y no llega a la biblioteca.
+
+### No veo el botón de búsqueda
+La búsqueda usa `Page.searchText`, también de **Android 15**. En versiones anteriores el botón no
+se muestra: no hay forma de extraer el texto sin añadir una librería de PDF de terceros, que es
+justo lo que este proyecto evita.
 
 ### Un documento desapareció de la lista
 La biblioteca descarta las entradas cuyo archivo ya no existe (por ejemplo, tras borrar los datos
@@ -127,7 +136,7 @@ de la aplicación). El archivo original de tu dispositivo sigue intacto: vuelve 
 
 ## 📋 Roadmap
 
-- [ ] Búsqueda de texto dentro del documento (requiere extracción de texto; `PdfRenderer` no la ofrece)
+- [x] Búsqueda de texto dentro del documento *(Android 15+, con `Page.searchText`)*
 - [ ] Vista continua de páginas con desplazamiento vertical
 - [ ] Miniaturas para saltar de página
 - [ ] Marcadores por documento

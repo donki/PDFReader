@@ -6,6 +6,36 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 sigue la sección 6 de la constitución: `ApplicationDisplayVersion` legible por el usuario y
 `ApplicationVersion` entero incremental para Play Store.
 
+## [2026.07.16.2] - 2026-07-16
+
+`versionCode` 202607162.
+
+### Añadido
+- **Búsqueda de texto** en el documento, con navegación entre coincidencias y resaltado. El
+  resaltado se pinta sobre el bitmap durante el render, así que la página no necesita ninguna
+  conversión de coordenadas PDF a vista.
+- **Apertura de PDF protegidos con contraseña**, preguntándola al importar y al abrir desde la
+  biblioteca, y reintentando mientras sea incorrecta.
+- `PasswordPromptPage`: diálogo modal propio con la entrada enmascarada. `DisplayPromptAsync` de
+  MAUI no permite ocultar el texto y dejaría la contraseña a la vista.
+
+### Cambiado
+- `IPdfDocumentService.OpenAsync` acepta la contraseña; `IPdfDocument` expone `SearchAsync` y
+  `SupportsTextSearch`, y `RenderPageAsync` acepta las coincidencias a resaltar.
+- Importar un PDF protegido ya no lo rechaza ni borra la entrada de la biblioteca: pide la
+  contraseña. La contraseña se conserva solo en memoria durante la sesión de lectura; guardarla
+  dejaría en disco la llave del documento del usuario (constitución, sección 5).
+- `PdfOpenFailure` distingue `WrongPassword` y `PasswordUnsupported` de `PasswordProtected`, para
+  poder explicar cada caso.
+
+### Limitaciones conocidas
+- La búsqueda y la apertura con contraseña **requieren Android 15 (API 35)**: `LoadParams` y
+  `Page.searchText` llegaron ahí. Por debajo, el botón de búsqueda no se muestra y un PDF
+  protegido sigue avisando de que no se puede abrir. Se descartó una librería externa por no
+  romper la ausencia de dependencias de PDF, que es lo que sostiene la licencia MIT. Esto corrige
+  la nota de 2026.07.15.0, que daba por hecho que ambas funciones exigían una librería de terceros.
+- La búsqueda se detiene a las 500 coincidencias: recorrerlas todas obliga a abrir cada página.
+
 ## [2026.07.16.1] - 2026-07-16
 
 `versionCode` 202607161.
@@ -16,7 +46,13 @@ sigue la sección 6 de la constitución: `ApplicationDisplayVersion` legible por
   icono de launcher que genera MAUI dentro del AAB no lo usa Play Console como icono de tienda: es
   un asset aparte de la ficha.
 - `publish_aab_to_play.ps1`: script de publicación en Play Console mediante Android Publisher API,
-  adaptado del de `FileManager`. Hasta ahora este proyecto no tenía ninguno.
+  adaptado del de `FileManager`. Hasta ahora este proyecto no tenía ninguno. No lleva credencial
+  por defecto: se pasa con `-ServiceAccountJson` o por `GOOGLE_APPLICATION_CREDENTIALS`.
+- `PlayStoreListing.es-ES.json`: textos de la ficha de Play Console. La ficha publicada tenía
+  título pero las dos descripciones vacías, lo que impedía enviarla a revisión. La descripción
+  corta evita palabras de precio o promoción, que Play rechaza en ese campo.
+- `hiker-*.json` añadido al `.gitignore`: las credenciales de Google Cloud se descargan con ese
+  nombre y ningún patrón anterior las cubría.
 
 ### Cambiado
 - Versión y `versionCode` incrementados para poder subir un AAB nuevo: Play Console ya tenía

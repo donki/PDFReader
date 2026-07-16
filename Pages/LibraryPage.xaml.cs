@@ -208,14 +208,26 @@ public partial class LibraryPage : ContentPage
             return; // An import is already running; ignore the double tap.
 
         PdfDocumentEntry? entry = null;
+        string? password = null;
         try
         {
             SetBusy(true);
 
             entry = await _library.ImportAsync(content, displayName);
 
-            // Open it once up front: an unreadable file must not reach the library.
-            using (var document = await _renderer.OpenAsync(_library.GetFilePath(entry)))
+            // Open it once up front: an unreadable file must not reach the library. A protected
+            // document is perfectly usable, so ask for the password instead of rejecting it.
+            var opened = await OpenWithPasswordRetryAsync(entry);
+            if (opened is null)
+            {
+                // Cancelled at the password prompt: the file never becomes a library entry.
+                await _library.RemoveAsync(entry);
+                entry = null;
+                return;
+            }
+
+            password = opened.Value.Password;
+            using (var document = opened.Value.Document)
             {
                 await _library.SetPageCountAsync(entry, document.PageCount);
             }
@@ -253,12 +265,44 @@ public partial class LibraryPage : ContentPage
         }
 
         if (entry is not null)
-            await OpenReaderAsync(entry);
+            await OpenReaderAsync(entry, password);
+    }
+
+    /// <summary>
+    /// Opens the imported document, asking for the password for as long as it stays protected.
+    /// Returns null when the user cancels the prompt.
+    /// </summary>
+    private async Task<(IPdfDocument Document, string? Password)?> OpenWithPasswordRetryAsync(PdfDocumentEntry entry)
+    {
+        var path = _library.GetFilePath(entry);
+        string? password = null;
+        var wrongPassword = false;
+
+        while (true)
+        {
+            try
+            {
+                return (await _renderer.OpenAsync(path, password), password);
+            }
+            catch (PdfOpenException ex) when (ex.Failure is PdfOpenFailure.PasswordProtected or PdfOpenFailure.WrongPassword)
+            {
+                _logger.LogWarning("{Document} needs a password ({Failure}).", entry.DisplayName, ex.Failure);
+
+                SetBusy(false);
+                password = await PasswordPromptPage.AskAsync(this, _localization, entry.DisplayName, wrongPassword);
+                if (password is null)
+                    return null;
+
+                wrongPassword = true; // Any further failure means the password they typed was wrong.
+                SetBusy(true);
+            }
+        }
     }
 
     private string DescribeFailure(PdfOpenFailure failure) => failure switch
     {
-        PdfOpenFailure.PasswordProtected => _localization["error_protected"],
+        PdfOpenFailure.PasswordProtected or PdfOpenFailure.WrongPassword => _localization["error_protected"],
+        PdfOpenFailure.PasswordUnsupported => _localization["error_password_unsupported"],
         PdfOpenFailure.InvalidDocument => _localization["error_not_pdf"],
         _ => _localization["error_not_pdf"]
     };
@@ -271,7 +315,12 @@ public partial class LibraryPage : ContentPage
         await OpenReaderAsync(item.Entry);
     }
 
-    private async Task OpenReaderAsync(PdfDocumentEntry entry)
+    /// <param name="password">
+    /// Known password of a protected document, so a freshly imported one does not ask twice.
+    /// Null when opening from the list: the reader asks for it again rather than the app keeping
+    /// the password around between sessions.
+    /// </param>
+    private async Task OpenReaderAsync(PdfDocumentEntry entry, string? password = null)
     {
         if (!File.Exists(_library.GetFilePath(entry)))
         {
@@ -282,6 +331,7 @@ public partial class LibraryPage : ContentPage
         }
 
         var reader = ActivatorUtilities.CreateInstance<ReaderPage>(_services, entry);
+        reader.InitialPassword = password;
         await Navigation.PushAsync(reader);
     }
 

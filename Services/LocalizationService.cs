@@ -107,12 +107,29 @@ public class LocalizationService : ILocalizationService
         ["zoom_out"] = "Alejar",
         ["zoom_reset"] = "Ajustar",
 
+        // Contraseña
+        ["password_title"] = "PDF protegido",
+        ["password_message"] = "Introduce la contraseña de «{0}».",
+        ["password_wrong"] = "La contraseña no es correcta. Inténtalo de nuevo.",
+        ["open"] = "Abrir",
+
+        // Búsqueda
+        ["search"] = "Buscar",
+        ["search_placeholder"] = "Buscar en el documento",
+        ["searching"] = "Buscando…",
+        ["search_no_results"] = "Sin resultados para «{0}»",
+        ["search_match_of"] = "{0} de {1}",
+        ["search_close"] = "Cerrar la búsqueda",
+        ["search_truncated"] = "Se muestran los primeros {0} resultados.",
+
         // Errores
         ["error"] = "Error",
         ["ok"] = "OK",
         ["error_open_title"] = "No se pudo abrir el PDF",
         ["error_not_pdf"] = "El archivo seleccionado no es un PDF válido o está dañado.",
-        ["error_protected"] = "Este PDF está protegido con contraseña y no se puede abrir.",
+        ["error_protected"] = "Este PDF está protegido con contraseña.",
+        ["error_password_unsupported"] = "Abrir un PDF protegido con contraseña requiere Android 15 o posterior.",
+        ["error_search_unsupported"] = "La búsqueda de texto requiere Android 15 o posterior.",
         ["error_render"] = "No se pudo mostrar esta página: {0}",
         ["error_import"] = "No se pudo copiar el documento: {0}",
         ["error_library"] = "No se pudo leer la biblioteca: {0}",
@@ -185,12 +202,29 @@ public class LocalizationService : ILocalizationService
         ["zoom_out"] = "Zoom out",
         ["zoom_reset"] = "Fit",
 
+        // Password
+        ["password_title"] = "Protected PDF",
+        ["password_message"] = "Enter the password for \"{0}\".",
+        ["password_wrong"] = "That password is not correct. Try again.",
+        ["open"] = "Open",
+
+        // Search
+        ["search"] = "Search",
+        ["search_placeholder"] = "Search in the document",
+        ["searching"] = "Searching…",
+        ["search_no_results"] = "No results for \"{0}\"",
+        ["search_match_of"] = "{0} of {1}",
+        ["search_close"] = "Close search",
+        ["search_truncated"] = "Showing the first {0} results.",
+
         // Errors
         ["error"] = "Error",
         ["ok"] = "OK",
         ["error_open_title"] = "Could not open the PDF",
         ["error_not_pdf"] = "The selected file is not a valid PDF, or it is damaged.",
-        ["error_protected"] = "This PDF is password protected and cannot be opened.",
+        ["error_protected"] = "This PDF is password protected.",
+        ["error_password_unsupported"] = "Opening a password protected PDF requires Android 15 or later.",
+        ["error_search_unsupported"] = "Text search requires Android 15 or later.",
         ["error_render"] = "Could not display this page: {0}",
         ["error_import"] = "Could not copy the document: {0}",
         ["error_library"] = "Could not read the library: {0}",

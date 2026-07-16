@@ -1,8 +1,10 @@
+using System.Runtime.Versioning;
 using Android.Graphics;
 using Android.Graphics.Pdf;
 using Android.OS;
 using PDFReader.Services;
 using AndroidColor = Android.Graphics.Color;
+using AndroidPaint = Android.Graphics.Paint;
 
 namespace PDFReader.Platforms.Android;
 
@@ -10,10 +12,18 @@ namespace PDFReader.Platforms.Android;
 /// Renders PDF pages with android.graphics.pdf.PdfRenderer, the renderer built into the
 /// platform since API 21. It keeps the app free of third-party PDF dependencies, which is
 /// what allows PDF Reader to ship under the MIT license with no further obligations.
+///
+/// Decrypting protected documents and searching text are platform features of Android 15
+/// (API 35). Below that the renderer offers no way to do either, so both degrade instead of
+/// pulling in an external library.
 /// </summary>
 public class AndroidPdfDocumentService : IPdfDocumentService
 {
-    public Task<IPdfDocument> OpenAsync(string filePath)
+    // The API level checks below are written as the literal 35 -Android 15, the release that added
+    // LoadParams and Page.searchText- because the platform-compatibility analyser only recognises a
+    // literal argument to IsAndroidVersionAtLeast and would flag the guarded calls otherwise.
+
+    public Task<IPdfDocument> OpenAsync(string filePath, string? password = null)
     {
         return Task.Run<IPdfDocument>(() =>
         {
@@ -27,14 +37,16 @@ public class AndroidPdfDocumentService : IPdfDocumentService
                 descriptor = ParcelFileDescriptor.Open(file, ParcelFileMode.ReadOnly)
                     ?? throw new PdfOpenException(PdfOpenFailure.Unreadable, $"Could not open a descriptor for {filePath}");
 
-                var renderer = new PdfRenderer(descriptor);
+                var renderer = CreateRenderer(descriptor, password);
                 return new AndroidPdfDocument(renderer, descriptor);
             }
             catch (Java.Lang.SecurityException ex)
             {
-                // PdfRenderer throws SecurityException for password protected documents.
+                // PdfRenderer reports both "needs a password" and "that password is wrong" as a
+                // SecurityException; only the caller knows which of the two happened.
                 descriptor?.Dispose();
-                throw new PdfOpenException(PdfOpenFailure.PasswordProtected, "The document is password protected.", ex);
+                var failure = password is null ? PdfOpenFailure.PasswordProtected : PdfOpenFailure.WrongPassword;
+                throw new PdfOpenException(failure, "The document is password protected.", ex);
             }
             catch (Java.IO.IOException ex)
             {
@@ -54,6 +66,31 @@ public class AndroidPdfDocumentService : IPdfDocumentService
         });
     }
 
+    private static PdfRenderer CreateRenderer(ParcelFileDescriptor descriptor, string? password)
+    {
+        if (password is null)
+            return new PdfRenderer(descriptor);
+
+        if (!OperatingSystem.IsAndroidVersionAtLeast(35))
+        {
+            throw new PdfOpenException(
+                PdfOpenFailure.PasswordUnsupported,
+                "Opening a protected document needs Android 15 or later.");
+        }
+
+        return CreateRendererWithPassword(descriptor, password);
+    }
+
+    [SupportedOSPlatform("android35.0")]
+    private static PdfRenderer CreateRendererWithPassword(ParcelFileDescriptor descriptor, string password)
+    {
+        using var loadParams = new LoadParams.Builder()
+            .SetPassword(password)!
+            .Build();
+
+        return new PdfRenderer(descriptor, loadParams);
+    }
+
     private sealed class AndroidPdfDocument : IPdfDocument
     {
         // PdfRenderer allows a single open page at a time, so every access is serialized.
@@ -67,7 +104,13 @@ public class AndroidPdfDocumentService : IPdfDocumentService
         private const int MaxWidthPixels = 3000;
         private const long MaxPixels = 12_000_000;
 
+        // A search that matched tens of thousands of times would stall the reader for no benefit:
+        // nobody steps through that many hits, and every page has to be opened to find them.
+        private const int MaxMatches = 500;
+
         public int PageCount { get; }
+
+        public bool SupportsTextSearch => OperatingSystem.IsAndroidVersionAtLeast(35);
 
         public AndroidPdfDocument(PdfRenderer renderer, ParcelFileDescriptor descriptor)
         {
@@ -101,7 +144,10 @@ public class AndroidPdfDocumentService : IPdfDocumentService
             }
         }
 
-        public async Task<byte[]> RenderPageAsync(int pageIndex, int targetWidthPixels)
+        public async Task<byte[]> RenderPageAsync(
+            int pageIndex,
+            int targetWidthPixels,
+            IReadOnlyList<PdfTextMatch>? highlights = null)
         {
             ValidatePageIndex(pageIndex);
 
@@ -127,6 +173,9 @@ public class AndroidPdfDocumentService : IPdfDocumentService
                     ClosePage(page);
                     page = null;
 
+                    if (highlights is { Count: > 0 })
+                        DrawHighlights(bitmap, highlights, pageIndex);
+
                     using var stream = new MemoryStream();
                     await bitmap.CompressAsync(Bitmap.CompressFormat.Png!, 100, stream).ConfigureAwait(false);
                     return stream.ToArray();
@@ -149,6 +198,95 @@ public class AndroidPdfDocumentService : IPdfDocumentService
             }
         }
 
+        public async Task<IReadOnlyList<PdfTextMatch>> SearchAsync(
+            string query,
+            CancellationToken cancellationToken = default)
+        {
+            // The version check is repeated here rather than read from SupportsTextSearch so that the
+            // platform analyser can see that SearchText is only reached on API 35 and later.
+            if (string.IsNullOrWhiteSpace(query) || !OperatingSystem.IsAndroidVersionAtLeast(35))
+                return [];
+
+            var matches = new List<PdfTextMatch>();
+
+            for (var pageIndex = 0; pageIndex < PageCount; pageIndex++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+                try
+                {
+                    ObjectDisposedException.ThrowIf(_disposed, this);
+
+                    var page = OpenPage(pageIndex);
+                    try
+                    {
+                        CollectMatches(page, pageIndex, query, matches);
+                    }
+                    finally
+                    {
+                        ClosePage(page);
+                    }
+                }
+                finally
+                {
+                    _gate.Release();
+                }
+
+                if (matches.Count >= MaxMatches)
+                    break;
+            }
+
+            return matches;
+        }
+
+        [SupportedOSPlatform("android35.0")]
+        private static void CollectMatches(
+            PdfRenderer.Page page,
+            int pageIndex,
+            string query,
+            List<PdfTextMatch> matches)
+        {
+            var found = page.SearchText(query);
+            if (found is null || found.Count == 0)
+                return;
+
+            double pageWidth = page.Width;
+            double pageHeight = page.Height;
+            if (pageWidth <= 0 || pageHeight <= 0)
+                return;
+
+            foreach (var match in found)
+            {
+                // One hit spans several rectangles when it wraps across lines. The union of them is
+                // what the reader highlights, so a wrapped match stays a single result to step through.
+                var bounds = match.Bounds;
+                if (bounds is null || bounds.Count == 0)
+                    continue;
+
+                float left = float.MaxValue, top = float.MaxValue;
+                float right = float.MinValue, bottom = float.MinValue;
+
+                foreach (var rect in bounds)
+                {
+                    left = Math.Min(left, rect.Left);
+                    top = Math.Min(top, rect.Top);
+                    right = Math.Max(right, rect.Right);
+                    bottom = Math.Max(bottom, rect.Bottom);
+                }
+
+                matches.Add(new PdfTextMatch(
+                    pageIndex,
+                    left / pageWidth,
+                    top / pageHeight,
+                    right / pageWidth,
+                    bottom / pageHeight));
+
+                if (matches.Count >= MaxMatches)
+                    return;
+            }
+        }
+
         private PdfRenderer.Page OpenPage(int pageIndex) =>
             _renderer.OpenPage(pageIndex)
                 ?? throw new InvalidOperationException($"Page {pageIndex} could not be opened.");
@@ -161,6 +299,27 @@ public class AndroidPdfDocumentService : IPdfDocumentService
         {
             page.Close();
             page.Dispose();
+        }
+
+        /// <summary>Paints a translucent marker over each match that falls on this page.</summary>
+        private static void DrawHighlights(Bitmap bitmap, IReadOnlyList<PdfTextMatch> highlights, int pageIndex)
+        {
+            using var canvas = new Canvas(bitmap);
+            using var paint = new AndroidPaint { AntiAlias = true };
+            paint.SetARGB(90, 255, 193, 7); // amber, translucent enough to read the text underneath
+
+            foreach (var match in highlights)
+            {
+                if (match.PageIndex != pageIndex)
+                    continue;
+
+                canvas.DrawRect(
+                    (float)(match.Left * bitmap.Width),
+                    (float)(match.Top * bitmap.Height),
+                    (float)(match.Right * bitmap.Width),
+                    (float)(match.Bottom * bitmap.Height),
+                    paint);
+            }
         }
 
         private static (int Width, int Height) ScalePage(int pageWidth, int pageHeight, int targetWidthPixels)

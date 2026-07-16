@@ -4,10 +4,53 @@
              x:Class="PDFReader.Pages.ReaderPage"
              BackgroundColor="{AppThemeBinding Light={StaticResource PdfCanvasLight}, Dark={StaticResource PdfCanvasDark}}">
 
-    <Grid RowDefinitions="*,Auto">
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <!-- Barra de busqueda: oculta hasta que se pulsa la lupa, y no disponible
+             por debajo de Android 15, que es donde llega Page.searchText. -->
+        <Border Grid.Row="0"
+                x:Name="SearchBar"
+                IsVisible="False"
+                Style="{StaticResource Card}"
+                Margin="8,8,8,0">
+            <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto"
+                  Padding="6,4"
+                  ColumnSpacing="2">
+
+                <Entry Grid.Column="0"
+                       x:Name="SearchEntry"
+                       ReturnType="Search"
+                       Completed="OnSearchSubmitted" />
+
+                <Label Grid.Column="1"
+                       x:Name="SearchStatusLabel"
+                       Style="{StaticResource SecondaryText}"
+                       FontSize="12"
+                       VerticalTextAlignment="Center"
+                       Margin="4,0" />
+
+                <Button Grid.Column="2"
+                        x:Name="PreviousMatchButton"
+                        Text="▲"
+                        Style="{StaticResource ReaderToolButton}"
+                        Clicked="OnPreviousMatchClicked" />
+
+                <Button Grid.Column="3"
+                        x:Name="NextMatchButton"
+                        Text="▼"
+                        Style="{StaticResource ReaderToolButton}"
+                        Clicked="OnNextMatchClicked" />
+
+                <Button Grid.Column="4"
+                        x:Name="CloseSearchButton"
+                        Text="✕"
+                        Style="{StaticResource ReaderToolButton}"
+                        Clicked="OnCloseSearchClicked" />
+            </Grid>
+        </Border>
 
         <!-- Lienzo de la pagina -->
-        <ScrollView Grid.Row="0"
+        <ScrollView Grid.Row="1"
                     x:Name="PageScroll"
                     Orientation="Both"
                     HorizontalScrollBarVisibility="Never"
@@ -25,7 +68,7 @@
         </ScrollView>
 
         <!-- Indicador de carga -->
-        <VerticalStackLayout Grid.Row="0"
+        <VerticalStackLayout Grid.Row="1"
                              x:Name="BusyPanel"
                              IsVisible="False"
                              VerticalOptions="Center"
@@ -40,10 +83,10 @@
         </VerticalStackLayout>
 
         <!-- Barra de herramientas -->
-        <Border Grid.Row="1"
+        <Border Grid.Row="2"
                 Style="{StaticResource Card}"
                 Margin="8,4,8,8">
-            <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto"
+            <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto"
                   Padding="6,4"
                   ColumnSpacing="2">
 
@@ -81,6 +124,12 @@
                         Text="▶"
                         Style="{StaticResource ReaderToolButton}"
                         Clicked="OnNextClicked" />
+
+                <Button Grid.Column="5"
+                        x:Name="SearchButton"
+                        Text="🔍"
+                        Style="{StaticResource ReaderToolButton}"
+                        Clicked="OnSearchClicked" />
             </Grid>
         </Border>
 
