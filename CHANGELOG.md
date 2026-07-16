@@ -6,6 +6,36 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 sigue la sección 6 de la constitución: `ApplicationDisplayVersion` legible por el usuario y
 `ApplicationVersion` entero incremental para Play Store.
 
+## [2026.07.16.1] - 2026-07-16
+
+`versionCode` 202607161.
+
+### Añadido
+- `Resources/AppIcon/play_store_icon.png`: icono de ficha de Play Console de 512×512, opaco,
+  compuesto por `appicon.svg` (fondo `#B3121E`) y `appiconfg.svg` (documento con marcapáginas). El
+  icono de launcher que genera MAUI dentro del AAB no lo usa Play Console como icono de tienda: es
+  un asset aparte de la ficha.
+- `publish_aab_to_play.ps1`: script de publicación en Play Console mediante Android Publisher API,
+  adaptado del de `FileManager`. Hasta ahora este proyecto no tenía ninguno.
+
+### Cambiado
+- Versión y `versionCode` incrementados para poder subir un AAB nuevo: Play Console ya tenía
+  202607160 y no admite reutilizar un `versionCode`. Sin cambios funcionales respecto a
+  2026.07.16.0.
+
+## [2026.07.16.0] - 2026-07-16
+
+`versionCode` 202607160.
+
+Versión preparada para el primer envío a Play Console. Sin cambios funcionales respecto a
+2026.07.15.0: solo se fija la versión a la fecha de publicación (§A.4).
+
+### Cambiado
+- Versión y `versionCode` fijados a la fecha de publicación.
+- El AAB de Release ya se firma con el keystore del proyecto (`socratic.keystore`) mediante
+  `build_and_sign.ps1`, lo que resuelve la limitación de firma con clave de depuración
+  anotada en 2026.07.15.0.
+
 ## [2026.07.15.0] - 2026-07-15
 
 Versión inicial. `versionCode` 202607150.

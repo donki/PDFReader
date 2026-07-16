@@ -26,7 +26,12 @@ artifacts/
 *.jks
 *.p12
 *.pfx
+keystore.password.txt
 google-play-service-account*.json
+*-service-account*.json
+# Las credenciales de Google Cloud se descargan como <proyecto>-<id>.json, que ningun
+# patron anterior cubre.
+hiker-*.json
 
 # Sistema operativo
 Thumbs.db
