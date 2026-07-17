@@ -35,6 +35,19 @@ sigue la sección 6 de la constitución: `ApplicationDisplayVersion` legible por
 - Desplazamiento con un dedo cuando la página está ampliada, con límites para que no se pueda
   arrastrar fuera de la vista.
 
+### Gobernanza
+- Submódulo `constitution` actualizado de `160c54c` a `725211c` (constitución §23: el anclaje se
+  mueve de forma deliberada y se registra aquí). Incorpora la **sección 24, Sistema de Diseño
+  Visual**, y el **anexo A.9**, extraídos de `FileManager` y `PDFReader`.
+- **Desviación conocida de este proyecto frente a la sección 24**, pendiente de resolver: se
+  mantiene la plantilla `Resources/Styles/Styles.xaml` de MAUI intacta y viva (405 líneas, ~27
+  estilos implícitos) junto al diccionario propio `AppStyles.xaml`, y su `Colors.xaml` de fábrica
+  define una segunda paleta muerta (`Primary` = `#512BD4`) que no es la de la aplicación
+  (`PdfPrimary` = `#B3121E`). De ahí el prefijo `Pdf`: el nombre `Primary` está ocupado por la
+  plantilla. `FileManager` ya está limpio (97 líneas, sin plantilla). Retirar la plantilla cambiaría
+  el aspecto de la aplicación, porque sus estilos implícitos están activos, así que exige
+  verificación en dispositivo.
+
 ## [2026.07.16.3] - 2026-07-16
 
 `versionCode` 202607163.
