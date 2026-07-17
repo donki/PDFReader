@@ -49,23 +49,26 @@
             </Grid>
         </Border>
 
-        <!-- Lienzo de la pagina -->
-        <ScrollView Grid.Row="1"
-                    x:Name="PageScroll"
-                    Orientation="Both"
-                    HorizontalScrollBarVisibility="Never"
-                    VerticalScrollBarVisibility="Default">
-            <Grid x:Name="PageHost" Padding="8">
-                <Grid.GestureRecognizers>
-                    <PinchGestureRecognizer PinchUpdated="OnPinchUpdated" />
-                </Grid.GestureRecognizers>
+        <!--
+            Lienzo de la pagina. Sin ScrollView a proposito: en Android un ScrollView se traga el
+            multitouch y el PinchGestureRecognizer de dentro no llega a dispararse nunca
+            (dotnet/maui#5614, #5612). El desplazamiento se hace con un PanGestureRecognizer.
+        -->
+        <Grid Grid.Row="1"
+              x:Name="Viewport"
+              Padding="8"
+              IsClippedToBounds="True">
+            <Grid.GestureRecognizers>
+                <PinchGestureRecognizer PinchUpdated="OnPinchUpdated" />
+                <PanGestureRecognizer PanUpdated="OnPanUpdated" />
+                <TapGestureRecognizer NumberOfTapsRequired="2" Tapped="OnDoubleTapped" />
+            </Grid.GestureRecognizers>
 
-                <Image x:Name="PageImage"
-                       Aspect="AspectFit"
-                       HorizontalOptions="Center"
-                       VerticalOptions="Center" />
-            </Grid>
-        </ScrollView>
+            <Image x:Name="PageImage"
+                   Aspect="AspectFit"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center" />
+        </Grid>
 
         <!-- Indicador de carga -->
         <VerticalStackLayout Grid.Row="1"

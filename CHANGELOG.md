@@ -6,6 +6,35 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 sigue la sección 6 de la constitución: `ApplicationDisplayVersion` legible por el usuario y
 `ApplicationVersion` entero incremental para Play Store.
 
+## [2026.07.17.0] - 2026-07-17
+
+`versionCode` 202607170.
+
+### Corregido
+- **El zoom con dos dedos no llegaba a dispararse.** El `PinchGestureRecognizer` estaba dentro de
+  un `ScrollView`, que en Android se traga el multitouch: es un fallo conocido de MAUI/Xamarin
+  (dotnet/maui#5614, #5612). El arreglo de 2026.07.16.3 corrigió la aritmética del gesto, pero el
+  gesto nunca llegaba. Se retira el `ScrollView` y el desplazamiento pasa a un
+  `PanGestureRecognizer` propio, que es el workaround documentado.
+
+### Cambiado
+- **El zoom ya no rerasteriza la página en cada paso.** Ahora es una transformación de vista: la
+  página conserva su tamaño de layout y solo cambia su `Scale`, que es instantáneo. El bitmap se
+  vuelve a rasterizar una sola vez, 250 ms después de que el zoom se detenga, y únicamente si la
+  resolución se ha quedado visiblemente corta. Antes, cada paso de zoom rasterizaba y codificaba a
+  PNG la página entera, que es de donde salía el spinner.
+- La rasterización se limita a 3× el ancho de ajuste: por encima, el coste crece con el cuadrado
+  del factor a cambio de detalle que la pantalla no puede mostrar.
+- El indicador de carga solo aparece si el render tarda más de 150 ms, para que un render rápido no
+  provoque un parpadeo.
+- El aspect ratio de cada página se cachea: obtenerlo abría la página una segunda vez en cada
+  render, y no cambia nunca.
+
+### Añadido
+- Doble toque para alternar entre ajustar a pantalla y 2×.
+- Desplazamiento con un dedo cuando la página está ampliada, con límites para que no se pueda
+  arrastrar fuera de la vista.
+
 ## [2026.07.16.3] - 2026-07-16
 
 `versionCode` 202607163.
