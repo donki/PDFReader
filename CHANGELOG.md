@@ -42,9 +42,11 @@ sigue la sección 6 de la constitución: `ApplicationDisplayVersion` legible por
   arrastrar fuera de la vista.
 
 ### Gobernanza
-- Submódulo `constitution` actualizado de `160c54c` a `725211c` (constitución §23: el anclaje se
+- Submódulo `constitution` actualizado de `160c54c` a `95e2b59` (constitución §23: el anclaje se
   mueve de forma deliberada y se registra aquí). Incorpora la **sección 24, Sistema de Diseño
-  Visual**, y el **anexo A.9**, extraídos de `FileManager` y `PDFReader`.
+  Visual**, y el **anexo A.9**, extraídos de `FileManager` y `PDFReader`, incluida la directriz de
+  iconografía flat de contorno. Pendiente para este proyecto: el botón de búsqueda del lector aún
+  usa el emoji 🔍, que la nueva A.9 sustituiría por un icono vectorial de contorno.
 - **Desviación conocida de este proyecto frente a la sección 24**, pendiente de resolver: se
   mantiene la plantilla `Resources/Styles/Styles.xaml` de MAUI intacta y viva (405 líneas, ~27
   estilos implícitos) junto al diccionario propio `AppStyles.xaml`, y su `Colors.xaml` de fábrica
