@@ -64,10 +64,18 @@
                 <TapGestureRecognizer NumberOfTapsRequired="2" Tapped="OnDoubleTapped" />
             </Grid.GestureRecognizers>
 
-            <Image x:Name="PageImage"
-                   Aspect="AspectFit"
-                   HorizontalOptions="Center"
-                   VerticalOptions="Center" />
+            <!--
+                Dos imagenes apiladas para el afinado de nitidez sin parpadeo: la version nueva se
+                carga en la capa trasera y se trae al frente encima de la anterior, que sigue
+                visible por debajo hasta que la nueva esta pintada. La transformacion de zoom vive
+                en este contenedor, no en cada imagen, para que el intercambio no la altere.
+            -->
+            <Grid x:Name="PageContainer"
+                  HorizontalOptions="Center"
+                  VerticalOptions="Center">
+                <Image x:Name="PageImageA" Aspect="AspectFit" />
+                <Image x:Name="PageImageB" Aspect="AspectFit" IsVisible="False" />
+            </Grid>
         </Grid>
 
         <!-- Indicador de carga -->

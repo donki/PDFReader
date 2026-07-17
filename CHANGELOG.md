@@ -30,6 +30,12 @@ sigue la sección 6 de la constitución: `ApplicationDisplayVersion` legible por
 - El aspect ratio de cada página se cachea: obtenerlo abría la página una segunda vez en cada
   render, y no cambia nunca.
 
+- El afinado de nitidez tras el zoom es **silencioso y sin parpadeo**. La página nueva se
+  rasteriza en una segunda capa que entra con un breve fundido sobre la anterior, que permanece
+  visible por debajo hasta que la nueva ha decodificado y aparecido. Antes se ocultaba la capa
+  vieja con un temporizador fijo, que destellaba cuando un bitmap ampliado tardaba en decodificar
+  más que el temporizador. De borroso a nítido, el fundido se percibe como un reenfoque suave.
+
 ### Añadido
 - Doble toque para alternar entre ajustar a pantalla y 2×.
 - Desplazamiento con un dedo cuando la página está ampliada, con límites para que no se pueda

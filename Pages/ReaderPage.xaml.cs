@@ -61,6 +61,11 @@ public partial class ReaderPage : ContentPage
     private double _panStartX;
     private double _panStartY;
 
+    // Front layer shows the current page; the next render lands on the back layer and is then
+    // brought forward over it, so the page never blanks out between the two.
+    private Image _frontLayer = null!;
+    private Image _backLayer = null!;
+
     private CancellationTokenSource? _renderSettle;
 
     private IReadOnlyList<PdfTextMatch> _matches = [];
@@ -88,6 +93,9 @@ public partial class ReaderPage : ContentPage
         _renderer = renderer;
         _localization = localization;
         _logger = logger;
+
+        _frontLayer = PageImageA;
+        _backLayer = PageImageB;
 
         Title = entry.DisplayName;
         BusyLabel.Text = _localization["loading_page"];
@@ -194,7 +202,11 @@ public partial class ReaderPage : ContentPage
     }
 
     /// <param name="resetView">True when moving to another page, so the pan starts from the top.</param>
-    private async Task ShowPageAsync(int pageIndex, bool resetView = false)
+    /// <param name="silent">
+    /// True for the sharpening pass after a zoom: the scaled page is already on screen and readable,
+    /// so covering it with a spinner would be a worse experience than the momentary softness.
+    /// </param>
+    private async Task ShowPageAsync(int pageIndex, bool resetView = false, bool silent = false)
     {
         if (_document is null)
             return;
@@ -203,7 +215,8 @@ public partial class ReaderPage : ContentPage
             return; // A render is already in flight; the user's next tap will still be honoured.
 
         var busy = new CancellationTokenSource();
-        _ = ShowBusyAfterDelayAsync(busy.Token);
+        if (!silent)
+            _ = ShowBusyAfterDelayAsync(busy.Token);
 
         try
         {
@@ -220,9 +233,29 @@ public partial class ReaderPage : ContentPage
             var aspectRatio = await GetAspectRatioAsync(pageIndex);
             var png = await _document.RenderPageAsync(pageIndex, targetPixels, _matches);
 
-            PageImage.Source = ImageSource.FromStream(() => new MemoryStream(png));
-            PageImage.WidthRequest = fitWidthDips;
-            PageImage.HeightRequest = fitWidthDips * aspectRatio;
+            // Cross-fade the freshly rendered page in over the current one. The old layer stays
+            // fully visible underneath until the new layer has both decoded and faded in, so there
+            // is never a blank frame — unlike hiding the old layer on a fixed timer, which flashed
+            // whenever a large (zoomed-in) bitmap took longer than the timer to decode. Going from
+            // a blurry scaled page to a sharp one, the fade reads as a gentle refocus.
+            // ZIndex, not declaration order, keeps the incoming layer on top across the A/B swap.
+            _backLayer.Opacity = 0;
+            _backLayer.Source = ImageSource.FromStream(() => new MemoryStream(png));
+            _backLayer.ZIndex = 1;
+            _frontLayer.ZIndex = 0;
+            _backLayer.IsVisible = true;
+
+            // Give the new bitmap time to decode while still invisible, then fade it in. The old
+            // layer is untouched underneath the whole time.
+            await Task.Delay(120);
+            await _backLayer.FadeToAsync(1, 90, Easing.CubicOut);
+
+            _frontLayer.IsVisible = false;
+            _frontLayer.Opacity = 1; // restore for its next turn as the back layer
+            (_frontLayer, _backLayer) = (_backLayer, _frontLayer);
+
+            PageContainer.WidthRequest = fitWidthDips;
+            PageContainer.HeightRequest = fitWidthDips * aspectRatio;
 
             _pageWidthDips = fitWidthDips;
             _pageHeightDips = fitWidthDips * aspectRatio;
@@ -231,8 +264,8 @@ public partial class ReaderPage : ContentPage
 
             if (resetView)
             {
-                PageImage.TranslationX = 0;
-                PageImage.TranslationY = 0;
+                PageContainer.TranslationX = 0;
+                PageContainer.TranslationY = 0;
             }
 
             ApplyTransform();
@@ -283,12 +316,12 @@ public partial class ReaderPage : ContentPage
     /// <summary>Applies the current zoom as a view transform and keeps the page within reach.</summary>
     private void ApplyTransform()
     {
-        PageImage.Scale = _zoom;
+        PageContainer.Scale = _zoom;
         ClampTranslation();
     }
 
     /// <summary>
-    /// Stops the page being dragged out of sight. Scaling happens around the centre, so the image
+    /// Stops the page being dragged out of sight. Scaling happens around the centre, so the page
     /// overflows the viewport by half of the excess on each side, and that is how far it may move.
     /// </summary>
     private void ClampTranslation()
@@ -301,8 +334,8 @@ public partial class ReaderPage : ContentPage
         var maxX = Math.Max(0, (_pageWidthDips * _zoom - viewportWidth) / 2);
         var maxY = Math.Max(0, (_pageHeightDips * _zoom - viewportHeight) / 2);
 
-        PageImage.TranslationX = Math.Clamp(PageImage.TranslationX, -maxX, maxX);
-        PageImage.TranslationY = Math.Clamp(PageImage.TranslationY, -maxY, maxY);
+        PageContainer.TranslationX = Math.Clamp(PageContainer.TranslationX, -maxX, maxX);
+        PageContainer.TranslationY = Math.Clamp(PageContainer.TranslationY, -maxY, maxY);
     }
 
     private double GetAvailableWidthDips()
@@ -362,8 +395,8 @@ public partial class ReaderPage : ContentPage
         if (_zoom <= MinZoom + 0.01)
         {
             // Back to fit: the page is fully visible again, so any pan is stale.
-            PageImage.TranslationX = 0;
-            PageImage.TranslationY = 0;
+            PageContainer.TranslationX = 0;
+            PageContainer.TranslationY = 0;
         }
 
         ApplyTransform();
@@ -392,6 +425,8 @@ public partial class ReaderPage : ContentPage
 
             case GestureStatus.Completed:
             case GestureStatus.Canceled:
+                // A pinch can raise Completed and Canceled back to back; ScheduleSettleRender cancels
+                // its own pending run, so the page still only re-renders once.
                 UpdateToolbar();
                 ScheduleSettleRender();
                 break;
@@ -403,14 +438,14 @@ public partial class ReaderPage : ContentPage
         switch (e.StatusType)
         {
             case GestureStatus.Started:
-                _panStartX = PageImage.TranslationX;
-                _panStartY = PageImage.TranslationY;
+                _panStartX = PageContainer.TranslationX;
+                _panStartY = PageContainer.TranslationY;
                 break;
 
             case GestureStatus.Running:
                 // TotalX/TotalY are measured from where the gesture started, not from the last update.
-                PageImage.TranslationX = _panStartX + e.TotalX;
-                PageImage.TranslationY = _panStartY + e.TotalY;
+                PageContainer.TranslationX = _panStartX + e.TotalX;
+                PageContainer.TranslationY = _panStartY + e.TotalY;
                 ClampTranslation();
                 break;
         }
@@ -445,7 +480,7 @@ public partial class ReaderPage : ContentPage
         }
 
         if (!token.IsCancellationRequested)
-            await ShowPageAsync(_pageIndex);
+            await ShowPageAsync(_pageIndex, silent: true);
     }
 
     private void CancelSettleRender()
