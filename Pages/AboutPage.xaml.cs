@@ -9,7 +9,7 @@ namespace PDFReader.Pages;
 public partial class AboutPage : ContentPage
 {
     private const string ContactEmail = "jsoladelarosa@gmail.com";
-    private const string DonationUrl = "https://ko-fi.com/pdfreader";
+    private const string DonationUrl = "https://ko-fi.com/josepsola";
 
     private static readonly Color ActiveLanguage = Color.FromArgb("#B3121E");
 
