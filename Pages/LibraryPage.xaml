@@ -13,9 +13,10 @@
                 Style="{StaticResource Card}"
                 Margin="16,16,16,8">
             <Grid ColumnDefinitions="Auto,*,Auto" Padding="18,16" ColumnSpacing="14">
-                <Label Grid.Column="0"
-                       Text="📕"
-                       FontSize="34"
+                <Image Grid.Column="0"
+                       Source="app_logo.png"
+                       WidthRequest="40"
+                       HeightRequest="40"
                        VerticalOptions="Center" />
 
                 <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
@@ -28,7 +29,7 @@
                 </VerticalStackLayout>
 
                 <Button Grid.Column="2"
-                        Text="ℹ"
+                        ImageSource="{AppThemeBinding Light=ic_info.png, Dark=ic_info_dark.png}"
                         Style="{StaticResource ReaderToolButton}"
                         Clicked="OnAboutClicked"
                         VerticalOptions="Center" />
@@ -75,9 +76,10 @@
                                 <TapGestureRecognizer Tapped="OnDocumentTapped" />
                             </Grid.GestureRecognizers>
 
-                            <Label Grid.Column="0"
-                                   Text="📄"
-                                   FontSize="28"
+                            <Image Grid.Column="0"
+                                   Source="{AppThemeBinding Light=ic_document.png, Dark=ic_document_dark.png}"
+                                   WidthRequest="28"
+                                   HeightRequest="28"
                                    VerticalOptions="Center" />
 
                             <VerticalStackLayout Grid.Column="1" Spacing="3" VerticalOptions="Center">
@@ -96,9 +98,8 @@
                             </VerticalStackLayout>
 
                             <Button Grid.Column="2"
-                                    Text="✕"
+                                    ImageSource="{AppThemeBinding Light=ic_close.png, Dark=ic_close_dark.png}"
                                     Style="{StaticResource ReaderToolButton}"
-                                    FontSize="16"
                                     WidthRequest="40"
                                     HeightRequest="40"
                                     Clicked="OnRemoveClicked"

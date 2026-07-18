@@ -51,6 +51,7 @@ public partial class AboutPage : ContentPage
 
         LicenseTitleLabel.Text = _localization["license_title"];
         LicenseTextLabel.Text = _localization["license_text"];
+        LicenseCopyrightLabel.Text = _localization["license_copyright"];
 
         LegalTitleLabel.Text = _localization["legal_title"];
         LegalText1Label.Text = _localization["legal_text_1"];

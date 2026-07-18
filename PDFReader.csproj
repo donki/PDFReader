@@ -28,10 +28,10 @@
     <Title>PDF Reader</Title>
     <Product>PDF Reader</Product>
     <Description>Lector de PDF para Android: sin conexion, sin permisos y con los documentos siempre en el dispositivo</Description>
-    <Copyright>Copyright © 2026 PDF Reader</Copyright>
+    <Copyright>Copyright © 2026 Socratic</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>pdf;reader;viewer;android;maui;dotnet</PackageTags>
-    <Authors>PDF Reader</Authors>
+    <Authors>Socratic</Authors>
     <Company>Socratic</Company>
 
     <!-- Platform versions -->

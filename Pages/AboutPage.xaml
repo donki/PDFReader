@@ -10,8 +10,9 @@
             <!-- Cabecera -->
             <Border Style="{StaticResource Card}">
                 <VerticalStackLayout Padding="24" Spacing="8">
-                    <Label Text="📕"
-                           FontSize="58"
+                    <Image Source="app_logo.png"
+                           WidthRequest="72"
+                           HeightRequest="72"
                            HorizontalOptions="Center" />
 
                     <Label x:Name="AppNameLabel"
@@ -28,6 +29,13 @@
                            FontSize="12"
                            HorizontalTextAlignment="Center"
                            Margin="0,4,0,0" />
+
+                    <Label Text="Socratic"
+                           Style="{StaticResource SecondaryText}"
+                           FontAttributes="Bold"
+                           FontSize="12"
+                           HorizontalOptions="Center"
+                           TextColor="{StaticResource Primary}" />
                 </VerticalStackLayout>
             </Border>
 
@@ -52,10 +60,10 @@
                 <VerticalStackLayout Padding="20,18" Spacing="12">
                     <Label x:Name="SupportTitleLabel"
                            Style="{StaticResource CardTitle}"
-                           TextColor="{StaticResource PdfAccent}" />
+                           TextColor="{StaticResource Accent}" />
 
                     <Button x:Name="SupportButton"
-                            BackgroundColor="{StaticResource PdfAccent}"
+                            BackgroundColor="{StaticResource Accent}"
                             TextColor="White"
                             FontSize="14"
                             CornerRadius="10"
@@ -77,7 +85,7 @@
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                         <Button Grid.Column="0"
                                 x:Name="SpanishButton"
-                                Text="Español"
+                                Text="🇪🇸 Español"
                                 FontSize="14"
                                 CornerRadius="10"
                                 HeightRequest="46"
@@ -85,7 +93,7 @@
 
                         <Button Grid.Column="1"
                                 x:Name="EnglishButton"
-                                Text="English"
+                                Text="🇺🇸 English"
                                 FontSize="14"
                                 CornerRadius="10"
                                 HeightRequest="46"
@@ -112,7 +120,7 @@
                 <VerticalStackLayout Padding="20,18" Spacing="10">
                     <Label x:Name="LicenseTitleLabel" Style="{StaticResource CardTitle}" />
                     <Label x:Name="LicenseTextLabel" Style="{StaticResource BodyText}" FontSize="13" />
-                    <Label Text="MIT License · Copyright © 2026 PDF Reader"
+                    <Label x:Name="LicenseCopyrightLabel"
                            Style="{StaticResource SecondaryText}"
                            FontSize="11" />
                 </VerticalStackLayout>
@@ -123,12 +131,12 @@
                 <VerticalStackLayout Padding="20,18" Spacing="12">
                     <Label x:Name="LegalTitleLabel"
                            Style="{StaticResource CardTitle}"
-                           TextColor="{StaticResource PdfLegal}" />
+                           TextColor="{StaticResource Legal}" />
 
                     <Label x:Name="LegalText1Label" Style="{StaticResource BodyText}" FontSize="13" />
                     <Label x:Name="LegalText2Label" Style="{StaticResource BodyText}" FontSize="13" />
 
-                    <Border BackgroundColor="{StaticResource PdfLegal}"
+                    <Border BackgroundColor="{StaticResource Legal}"
                             Stroke="Transparent"
                             Padding="12">
                         <Border.StrokeShape>

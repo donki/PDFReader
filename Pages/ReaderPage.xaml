@@ -2,7 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="PDFReader.Pages.ReaderPage"
-             BackgroundColor="{AppThemeBinding Light={StaticResource PdfCanvasLight}, Dark={StaticResource PdfCanvasDark}}">
+             BackgroundColor="{AppThemeBinding Light={StaticResource CanvasLight}, Dark={StaticResource CanvasDark}}">
 
     <Grid RowDefinitions="Auto,*,Auto">
 
@@ -31,19 +31,19 @@
 
                 <Button Grid.Column="2"
                         x:Name="PreviousMatchButton"
-                        Text="▲"
+                        ImageSource="{AppThemeBinding Light=ic_chevron_up.png, Dark=ic_chevron_up_dark.png}"
                         Style="{StaticResource ReaderToolButton}"
                         Clicked="OnPreviousMatchClicked" />
 
                 <Button Grid.Column="3"
                         x:Name="NextMatchButton"
-                        Text="▼"
+                        ImageSource="{AppThemeBinding Light=ic_chevron_down.png, Dark=ic_chevron_down_dark.png}"
                         Style="{StaticResource ReaderToolButton}"
                         Clicked="OnNextMatchClicked" />
 
                 <Button Grid.Column="4"
                         x:Name="CloseSearchButton"
-                        Text="✕"
+                        ImageSource="{AppThemeBinding Light=ic_close.png, Dark=ic_close_dark.png}"
                         Style="{StaticResource ReaderToolButton}"
                         Clicked="OnCloseSearchClicked" />
             </Grid>
@@ -86,7 +86,7 @@
                              HorizontalOptions="Center"
                              Spacing="10">
             <ActivityIndicator x:Name="BusyIndicator"
-                               Color="{StaticResource PdfPrimary}"
+                               Color="{StaticResource Primary}"
                                HorizontalOptions="Center" />
             <Label x:Name="BusyLabel"
                    Style="{StaticResource SecondaryText}"
@@ -103,13 +103,13 @@
 
                 <Button Grid.Column="0"
                         x:Name="PreviousButton"
-                        Text="◀"
+                        ImageSource="{AppThemeBinding Light=ic_chevron_left.png, Dark=ic_chevron_left_dark.png}"
                         Style="{StaticResource ReaderToolButton}"
                         Clicked="OnPreviousClicked" />
 
                 <Button Grid.Column="1"
                         x:Name="ZoomOutButton"
-                        Text="－"
+                        ImageSource="{AppThemeBinding Light=ic_minus.png, Dark=ic_minus_dark.png}"
                         Style="{StaticResource ReaderToolButton}"
                         Clicked="OnZoomOutClicked" />
 
@@ -126,19 +126,19 @@
 
                 <Button Grid.Column="3"
                         x:Name="ZoomInButton"
-                        Text="＋"
+                        ImageSource="{AppThemeBinding Light=ic_plus.png, Dark=ic_plus_dark.png}"
                         Style="{StaticResource ReaderToolButton}"
                         Clicked="OnZoomInClicked" />
 
                 <Button Grid.Column="4"
                         x:Name="NextButton"
-                        Text="▶"
+                        ImageSource="{AppThemeBinding Light=ic_chevron_right.png, Dark=ic_chevron_right_dark.png}"
                         Style="{StaticResource ReaderToolButton}"
                         Clicked="OnNextClicked" />
 
                 <Button Grid.Column="5"
                         x:Name="SearchButton"
-                        Text="🔍"
+                        ImageSource="{AppThemeBinding Light=ic_search.png, Dark=ic_search_dark.png}"
                         Style="{StaticResource ReaderToolButton}"
                         Clicked="OnSearchClicked" />
             </Grid>
