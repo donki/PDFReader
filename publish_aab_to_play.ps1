@@ -66,6 +66,8 @@ function Read-Default {
         [string]$DefaultValue
     )
 
+    if ($AssumeYes) { return $DefaultValue }
+
     if ([string]::IsNullOrWhiteSpace($DefaultValue)) {
         $value = Read-Host $Prompt
     }
@@ -89,6 +91,8 @@ function Read-YesNo {
         [Parameter(Mandatory = $true)][string]$Prompt,
         [bool]$DefaultYes = $true
     )
+
+    if ($AssumeYes) { return $DefaultYes }
 
     $suffix = if ($DefaultYes) { '[S/n]' } else { '[s/N]' }
     while ($true) {

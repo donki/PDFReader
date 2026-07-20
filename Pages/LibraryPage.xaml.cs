@@ -18,6 +18,7 @@ public partial class LibraryPage : ContentPage
     private readonly ILocalizationService _localization;
     private readonly PendingDocumentQueue _pendingDocuments;
     private readonly IServiceProvider _services;
+    private readonly UpdateService _updateService;
     private readonly ILogger<LibraryPage> _logger;
 
     private readonly ObservableCollection<DocumentListItem> _documents = [];
@@ -29,6 +30,7 @@ public partial class LibraryPage : ContentPage
         ILocalizationService localization,
         PendingDocumentQueue pendingDocuments,
         IServiceProvider services,
+        UpdateService updateService,
         ILogger<LibraryPage> logger)
     {
         InitializeComponent();
@@ -38,6 +40,7 @@ public partial class LibraryPage : ContentPage
         _localization = localization;
         _pendingDocuments = pendingDocuments;
         _services = services;
+        _updateService = updateService;
         _logger = logger;
 
         DocumentsView.ItemsSource = _documents;
@@ -51,12 +54,18 @@ public partial class LibraryPage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
+
+        // Comprobacion de version al arrancar (constitucion, seccion 15): avisa si hay una version
+        // mas reciente y propone actualizar. No bloqueante y se hace una sola vez por sesion.
+        _ = _updateService.CheckAndPromptAsync(this);
+
         await RefreshAsync();
         await ImportPendingDocumentsAsync();
     }
 
     private void ApplyTexts()
     {
+        Title = _localization["library_title"];
         AppNameLabel.Text = _localization["app_name"];
         TaglineLabel.Text = _localization["app_tagline"];
         RecentLabel.Text = _localization["recent_documents"].ToUpper(CultureInfo.CurrentCulture);

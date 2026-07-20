@@ -11,8 +11,6 @@ public partial class AboutPage : ContentPage
     private const string ContactEmail = "jsoladelarosa@gmail.com";
     private const string DonationUrl = "https://ko-fi.com/josepsola";
 
-    private static readonly Color ActiveLanguage = Color.FromArgb("#B3121E");
-
     private readonly ILocalizationService _localization;
     private readonly ILogger<AboutPage> _logger;
 
@@ -71,11 +69,21 @@ public partial class AboutPage : ContentPage
 
     private static void StyleLanguageButton(Button button, bool active)
     {
-        button.BackgroundColor = active ? ActiveLanguage : Colors.Transparent;
-        button.TextColor = active ? Colors.White : ActiveLanguage;
-        button.BorderColor = ActiveLanguage;
+        var brand = GetColor("Primary");
+        button.BackgroundColor = active ? brand : Colors.Transparent;
+        button.TextColor = active ? GetColor("White") : brand;
+        button.BorderColor = brand;
         button.BorderWidth = active ? 0 : 1;
     }
+
+    /// <summary>
+    /// Resolves a color token from the merged resource dictionaries, so the code-behind consumes the
+    /// same palette as the markup instead of duplicating literals (constitucion, seccion 24).
+    /// </summary>
+    private static Color GetColor(string key) =>
+        Application.Current?.Resources.TryGetValue(key, out var value) == true && value is Color color
+            ? color
+            : Colors.Transparent;
 
     private void OnSpanishClicked(object? sender, EventArgs e) => SetLanguage("es");
 
@@ -155,8 +163,8 @@ public partial class AboutPage : ContentPage
             {
                 LaunchMode = BrowserLaunchMode.SystemPreferred,
                 TitleMode = BrowserTitleMode.Show,
-                PreferredToolbarColor = Color.FromArgb("#E67E22"),
-                PreferredControlColor = Colors.White
+                PreferredToolbarColor = GetColor("Accent"),
+                PreferredControlColor = GetColor("White")
             });
         }
         catch (Exception ex)

@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 	<!--
-		PDF Reader no declara ningun permiso (constitucion, seccion 5: minimo privilegio).
-		Los documentos se eligen con el selector del sistema (Storage Access Framework),
-		que concede acceso solo al archivo elegido, y la app no accede a la red.
+		Minimo privilegio (constitucion, seccion 5). Los documentos se eligen con el selector del
+		sistema (Storage Access Framework), que concede acceso solo al archivo elegido: no hace
+		falta permiso de almacenamiento.
+		INTERNET es el unico permiso, y solo para la comprobacion de version al arrancar
+		(constitucion, seccion 15): descargar el appcast del repositorio del proyecto. La app no
+		sube documentos ni datos del usuario a la red.
 	-->
+	<uses-permission android:name="android.permission.INTERNET" />
 	<application android:allowBackup="true" android:icon="@mipmap/appicon" android:roundIcon="@mipmap/appicon_round" android:supportsRtl="true"></application>
 	<queries>
 		<!-- Permite resolver la aplicacion de correo desde la pantalla Acerca de. -->

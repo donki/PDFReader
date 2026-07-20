@@ -9,22 +9,21 @@ public static class MauiProgram
     public static MauiApp CreateMauiApp()
     {
         var builder = MauiApp.CreateBuilder();
-        builder
-            .UseMauiApp<App>()
-            .ConfigureFonts(fonts =>
-            {
-                fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-                fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
-            });
+        // Tipografia del sistema (constitucion, anexo A.9): no se embeben familias propias.
+        builder.UseMauiApp<App>();
 
         // Servicios (constitucion, seccion 4: inyeccion de dependencias para todos los servicios)
         builder.Services.AddSingleton<ILocalizationService, LocalizationService>();
         builder.Services.AddSingleton<ILibraryService, LibraryService>();
         builder.Services.AddSingleton<PendingDocumentQueue>();
+        builder.Services.AddSingleton<UpdateService>();
 
 #if ANDROID
         builder.Services.AddSingleton<IPdfDocumentService, Platforms.Android.AndroidPdfDocumentService>();
 #endif
+
+        // Shell (constitucion, anexo A.9: menu hamburguesa de primer nivel)
+        builder.Services.AddSingleton<AppShell>();
 
         // Paginas
         builder.Services.AddSingleton<LibraryPage>();

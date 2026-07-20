@@ -82,7 +82,14 @@ public class LocalizationService : ILocalizationService
         ["empty_hint"] = "Abre un PDF de tu dispositivo y aparecerá aquí para volver a leerlo cuando quieras.",
         ["recent_documents"] = "Documentos recientes",
         ["about"] = "Acerca de",
+        ["menu_home"] = "Inicio",
         ["importing"] = "Abriendo documento…",
+
+        // Comprobacion de version (constitucion, seccion 15)
+        ["update_available_title"] = "Actualización disponible",
+        ["update_available_message"] = "Hay una versión más reciente ({0}). Tienes la {1}.\n¿Quieres actualizar?",
+        ["update_now"] = "Actualizar",
+        ["update_later"] = "Ahora no",
         ["remove_title"] = "Quitar documento",
         ["remove_message"] = "Se eliminará «{0}» de la biblioteca y del almacenamiento de la aplicación. El archivo original de tu dispositivo no se toca.",
         ["remove"] = "Quitar",
@@ -178,7 +185,14 @@ public class LocalizationService : ILocalizationService
         ["empty_hint"] = "Open a PDF from your device and it will show up here, ready to read again any time.",
         ["recent_documents"] = "Recent documents",
         ["about"] = "About",
+        ["menu_home"] = "Home",
         ["importing"] = "Opening document…",
+
+        // Update check (constitucion, seccion 15)
+        ["update_available_title"] = "Update available",
+        ["update_available_message"] = "There is a newer version ({0}). You have {1}.\nDo you want to update?",
+        ["update_now"] = "Update",
+        ["update_later"] = "Not now",
         ["remove_title"] = "Remove document",
         ["remove_message"] = "\"{0}\" will be removed from the library and from the app storage. The original file on your device is left untouched.",
         ["remove"] = "Remove",

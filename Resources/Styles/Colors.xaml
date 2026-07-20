@@ -18,6 +18,9 @@
     <!-- Estado -->
     <Color x:Key="Legal">#E74C3C</Color>
 
+    <!-- Velo modal: oscurece la pantalla tras un overlay o un dialogo propio. -->
+    <Color x:Key="ScrimOverlay">#99000000</Color>
+
     <!-- Superficies -->
     <Color x:Key="PageBackgroundLight">#F2F3F5</Color>
     <Color x:Key="PageBackgroundDark">#121212</Color>

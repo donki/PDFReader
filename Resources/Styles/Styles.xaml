@@ -18,7 +18,6 @@
         <Setter Property="TextColor" Value="{StaticResource White}" />
         <Setter Property="BackgroundColor"
                 Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
-        <Setter Property="FontFamily" Value="OpenSansRegular" />
         <Setter Property="FontSize" Value="14" />
         <Setter Property="BorderWidth" Value="0" />
         <Setter Property="CornerRadius" Value="10" />
@@ -44,7 +43,6 @@
         <Setter Property="TextColor"
                 Value="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
         <Setter Property="BackgroundColor" Value="Transparent" />
-        <Setter Property="FontFamily" Value="OpenSansRegular" />
         <Setter Property="FontSize" Value="14" />
     </Style>
 
@@ -52,7 +50,6 @@
         <Setter Property="TextColor"
                 Value="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
         <Setter Property="BackgroundColor" Value="Transparent" />
-        <Setter Property="FontFamily" Value="OpenSansRegular" />
         <Setter Property="FontSize" Value="14" />
         <Setter Property="PlaceholderColor"
                 Value="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}" />
@@ -138,6 +135,29 @@
         <Setter Property="FontSize" Value="14" />
         <Setter Property="CornerRadius" Value="10" />
         <Setter Property="HeightRequest" Value="46" />
+    </Style>
+
+    <!--
+        Boton de apoyo (Ko-fi) de la pantalla Acerca de: accion sobre superficie de color de acento.
+        El blanco del texto es el token, no un literal (constitucion, seccion 24).
+    -->
+    <Style x:Key="SupportButton" TargetType="Button">
+        <Setter Property="BackgroundColor" Value="{StaticResource Accent}" />
+        <Setter Property="TextColor" Value="{StaticResource White}" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="HeightRequest" Value="46" />
+    </Style>
+
+    <!--
+        Botones del selector de idioma de la pantalla Acerca de. El estilo fija la escala; el
+        code-behind alterna los colores de activo/inactivo (contorno frente a relleno de marca).
+    -->
+    <Style x:Key="LanguageButton" TargetType="Button">
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="HeightRequest" Value="46" />
+        <Setter Property="BorderColor" Value="{StaticResource Primary}" />
     </Style>
 
     <!--

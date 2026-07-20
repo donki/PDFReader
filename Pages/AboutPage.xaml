@@ -63,11 +63,7 @@
                            TextColor="{StaticResource Accent}" />
 
                     <Button x:Name="SupportButton"
-                            BackgroundColor="{StaticResource Accent}"
-                            TextColor="White"
-                            FontSize="14"
-                            CornerRadius="10"
-                            HeightRequest="46"
+                            Style="{StaticResource SupportButton}"
                             Clicked="OnDonationClicked" />
 
                     <Label x:Name="SupportHintLabel"
@@ -86,17 +82,13 @@
                         <Button Grid.Column="0"
                                 x:Name="SpanishButton"
                                 Text="🇪🇸 Español"
-                                FontSize="14"
-                                CornerRadius="10"
-                                HeightRequest="46"
+                                Style="{StaticResource LanguageButton}"
                                 Clicked="OnSpanishClicked" />
 
                         <Button Grid.Column="1"
                                 x:Name="EnglishButton"
                                 Text="🇺🇸 English"
-                                FontSize="14"
-                                CornerRadius="10"
-                                HeightRequest="46"
+                                Style="{StaticResource LanguageButton}"
                                 Clicked="OnEnglishClicked" />
                     </Grid>
 
@@ -145,7 +137,7 @@
                         <Label x:Name="LegalWarningLabel"
                                FontSize="13"
                                FontAttributes="Bold"
-                               TextColor="White"
+                               TextColor="{StaticResource White}"
                                HorizontalOptions="Center" />
                     </Border>
                 </VerticalStackLayout>

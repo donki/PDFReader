@@ -3,8 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:models="clr-namespace:PDFReader.Models"
              x:Class="PDFReader.Pages.LibraryPage"
-             Style="{StaticResource AppPage}"
-             NavigationPage.HasNavigationBar="False">
+             Style="{StaticResource AppPage}">
 
     <Grid RowDefinitions="Auto,*,Auto">
 
@@ -121,13 +120,13 @@
         <Grid Grid.Row="0" Grid.RowSpan="3"
               x:Name="BusyOverlay"
               IsVisible="False"
-              BackgroundColor="#99000000">
+              BackgroundColor="{StaticResource ScrimOverlay}">
             <VerticalStackLayout VerticalOptions="Center" Spacing="14">
                 <ActivityIndicator x:Name="BusyIndicator"
-                                   Color="White"
+                                   Color="{StaticResource White}"
                                    HorizontalOptions="Center" />
                 <Label x:Name="BusyLabel"
-                       TextColor="White"
+                       TextColor="{StaticResource White}"
                        FontSize="14"
                        HorizontalOptions="Center" />
             </VerticalStackLayout>

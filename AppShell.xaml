@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Shell xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+       xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+       x:Class="PDFReader.AppShell"
+       FlyoutBehavior="Flyout"
+       FlyoutWidth="280"
+       FlyoutBackgroundColor="{AppThemeBinding Light={StaticResource PageBackgroundLight}, Dark={StaticResource PageBackgroundDark}}"
+       BackgroundColor="{StaticResource Primary}">
+
+    <!-- Barra superior de marca en todas las secciones, con el icono de hamburguesa visible. -->
+    <Shell.Resources>
+        <ResourceDictionary>
+            <Style x:Key="BaseStyle" TargetType="Element">
+                <Setter Property="Shell.BackgroundColor" Value="{StaticResource Primary}" />
+                <Setter Property="Shell.ForegroundColor" Value="{StaticResource White}" />
+                <Setter Property="Shell.TitleColor" Value="{StaticResource White}" />
+            </Style>
+        </ResourceDictionary>
+    </Shell.Resources>
+
+    <!-- Items de navegacion del menu: texto con color segun tema (nunca fijo, o quedaria
+         invisible en modo oscuro sobre el fondo del flyout). -->
+    <Shell.ItemTemplate>
+        <DataTemplate>
+            <Grid HeightRequest="52" Padding="20,0">
+                <Label Text="{Binding Title}"
+                       VerticalOptions="Center"
+                       FontSize="16"
+                       TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
+            </Grid>
+        </DataTemplate>
+    </Shell.ItemTemplate>
+
+    <Shell.MenuItemTemplate>
+        <DataTemplate>
+            <Grid HeightRequest="52" Padding="20,0">
+                <Label Text="{Binding Text}"
+                       VerticalOptions="Center"
+                       FontSize="16"
+                       TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
+            </Grid>
+        </DataTemplate>
+    </Shell.MenuItemTemplate>
+
+    <!-- Cabecera del menu -->
+    <Shell.FlyoutHeader>
+        <Grid BackgroundColor="{StaticResource Primary}" HeightRequest="150" Padding="20,44,20,16">
+            <VerticalStackLayout VerticalOptions="End" Spacing="4">
+                <Image Source="app_logo.png" WidthRequest="52" HeightRequest="52" HorizontalOptions="Start" />
+                <Label x:Name="HeaderTitleLabel"
+                       FontSize="22" FontAttributes="Bold"
+                       TextColor="{StaticResource White}" />
+                <Label x:Name="HeaderTaglineLabel"
+                       FontSize="12" Opacity="0.9"
+                       TextColor="{StaticResource White}" />
+            </VerticalStackLayout>
+        </Grid>
+    </Shell.FlyoutHeader>
+
+    <!-- Inicio: la biblioteca. Su contenido se inyecta desde el code-behind (DI). -->
+    <FlyoutItem x:Name="HomeFlyoutItem" Route="LibraryPage">
+        <ShellContent x:Name="HomeContent" />
+    </FlyoutItem>
+
+    <!-- Acerca de: se apila sobre la pila actual para conservar el boton Volver. -->
+    <MenuItem x:Name="AboutMenuItem" Clicked="OnAboutMenuClicked" />
+
+</Shell>
