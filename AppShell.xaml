@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Shell xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
        xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+       xmlns:mauiControls="clr-namespace:Microsoft.Maui.Controls;assembly=Microsoft.Maui.Controls"
        x:Class="PDFReader.AppShell"
        FlyoutBehavior="Flyout"
        FlyoutWidth="280"
@@ -21,9 +22,16 @@
     <!-- Items de navegacion del menu: texto con color segun tema (nunca fijo, o quedaria
          invisible en modo oscuro sobre el fondo del flyout). -->
     <Shell.ItemTemplate>
-        <DataTemplate>
-            <Grid HeightRequest="52" Padding="20,0">
-                <Label Text="{Binding Title}"
+        <DataTemplate x:DataType="mauiControls:BaseShellItem">
+            <Grid HeightRequest="52" Padding="20,0" ColumnDefinitions="24,*" ColumnSpacing="16">
+                <Image Grid.Column="0"
+                       Source="{Binding FlyoutIcon}"
+                       HeightRequest="22"
+                       WidthRequest="22"
+                       Aspect="AspectFit"
+                       VerticalOptions="Center" />
+                <Label Grid.Column="1"
+                       Text="{Binding Title}"
                        VerticalOptions="Center"
                        FontSize="16"
                        TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
@@ -32,9 +40,16 @@
     </Shell.ItemTemplate>
 
     <Shell.MenuItemTemplate>
-        <DataTemplate>
-            <Grid HeightRequest="52" Padding="20,0">
-                <Label Text="{Binding Text}"
+        <DataTemplate x:DataType="mauiControls:MenuItem">
+            <Grid HeightRequest="52" Padding="20,0" ColumnDefinitions="24,*" ColumnSpacing="16">
+                <Image Grid.Column="0"
+                       Source="{Binding IconImageSource}"
+                       HeightRequest="22"
+                       WidthRequest="22"
+                       Aspect="AspectFit"
+                       VerticalOptions="Center" />
+                <Label Grid.Column="1"
+                       Text="{Binding Text}"
                        VerticalOptions="Center"
                        FontSize="16"
                        TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
@@ -58,11 +73,11 @@
     </Shell.FlyoutHeader>
 
     <!-- Inicio: la biblioteca. Su contenido se inyecta desde el code-behind (DI). -->
-    <FlyoutItem x:Name="HomeFlyoutItem" Route="LibraryPage">
+    <FlyoutItem x:Name="HomeFlyoutItem" Route="LibraryPage" FlyoutIcon="ic_home.png">
         <ShellContent x:Name="HomeContent" />
     </FlyoutItem>
 
     <!-- Acerca de: se apila sobre la pila actual para conservar el boton Volver. -->
-    <MenuItem x:Name="AboutMenuItem" Clicked="OnAboutMenuClicked" />
+    <MenuItem x:Name="AboutMenuItem" IconImageSource="ic_info.png" Clicked="OnAboutMenuClicked" />
 
 </Shell>
