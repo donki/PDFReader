@@ -6,7 +6,9 @@ using Android.Provider;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using PDFReader.Services;
+using AndroidX.Core.View;
 using AndroidUri = Android.Net.Uri;
+using AndroidView = Android.Views.View;
 
 namespace PDFReader;
 
@@ -40,7 +42,35 @@ public class MainActivity : MauiAppCompatActivity
     protected override void OnCreate(Bundle? savedInstanceState)
     {
         base.OnCreate(savedInstanceState);
+        ApplySystemBarInsets();
         HandleIncomingPdf(Intent);
+    }
+
+    // Android 15 dibuja de borde a borde: separa el contenido del reloj y de la barra inferior.
+    private void ApplySystemBarInsets()
+    {
+        var content = FindViewById(global::Android.Resource.Id.Content);
+        if (content is null) return;
+        content.SetBackgroundColor(global::Android.Graphics.Color.ParseColor("#2A1CB8")); // indigo de marca
+        ViewCompat.SetOnApplyWindowInsetsListener(content, new SystemBarInsetsListener());
+        var controller = Window is not null ? WindowCompat.GetInsetsController(Window, Window.DecorView) : null;
+        if (controller is not null)
+        {
+            controller.AppearanceLightStatusBars = false;
+            controller.AppearanceLightNavigationBars = false;
+        }
+    }
+
+    private class SystemBarInsetsListener : Java.Lang.Object, IOnApplyWindowInsetsListener
+    {
+        public WindowInsetsCompat OnApplyWindowInsets(AndroidView? view, WindowInsetsCompat? insets)
+        {
+            var consumed = WindowInsetsCompat.Consumed!;
+            if (view is null || insets is null) return consumed;
+            var bars = insets.GetInsets(WindowInsetsCompat.Type.SystemBars() | WindowInsetsCompat.Type.DisplayCutout());
+            if (bars is not null) view.SetPadding(bars.Left, bars.Top, bars.Right, bars.Bottom);
+            return consumed;
+        }
     }
 
     protected override void OnNewIntent(Intent? intent)

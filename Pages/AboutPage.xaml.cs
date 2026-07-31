@@ -191,5 +191,5 @@ public partial class AboutPage : ContentPage
     }
 
     private Task ShowAlertAsync(string title, string message) =>
-        DisplayAlertAsync(title, message, _localization["ok"]);
+        SocShared.ModernDialog.AlertAsync(this, title, message, _localization["ok"]);
 }

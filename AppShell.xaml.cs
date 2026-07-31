@@ -25,6 +25,8 @@ public partial class AppShell : Shell
         // The library is a singleton and is the app's home screen. It is resolved from DI here
         // rather than through a DataTemplate so its constructor injection keeps working.
         HomeContent.Content = services.GetRequiredService<LibraryPage>();
+        // Igual para «Acerca de»: ahora es un FlyoutItem, su contenido se inyecta por DI.
+        AboutContent.Content = services.GetRequiredService<AboutPage>();
 
         ApplyTexts();
         _localization.LanguageChanged += (_, _) => ApplyTexts();
@@ -33,14 +35,8 @@ public partial class AppShell : Shell
     private void ApplyTexts()
     {
         HeaderTitleLabel.Text = _localization["app_name"];
-        HeaderTaglineLabel.Text = _localization["app_tagline"];
         HomeFlyoutItem.Title = _localization["menu_home"];
-        AboutMenuItem.Text = _localization["about"];
-    }
-
-    private async void OnAboutMenuClicked(object? sender, EventArgs e)
-    {
-        FlyoutIsPresented = false;
-        await Navigation.PushAsync(_services.GetRequiredService<AboutPage>());
+        AboutFlyoutItem.Title = _localization["about"];
+        FooterVersionLabel.Text = $"v{AppInfo.Current.VersionString}";
     }
 }
