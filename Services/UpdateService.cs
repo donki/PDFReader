@@ -37,7 +37,8 @@ public class UpdateService
             if (CompareVersions(manifest.Version, current) <= 0)
                 return; // ya se esta en la ultima version (o mas nueva)
 
-            var wantsUpdate = await page.DisplayAlertAsync(
+            var wantsUpdate = await SocShared.ModernDialog.AlertAsync(
+                page,
                 _localization["update_available_title"],
                 _localization.Format("update_available_message", manifest.Version, current),
                 _localization["update_now"],

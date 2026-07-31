@@ -22,6 +22,12 @@ public partial class App : Application
     // page built before InitializeComponent() runs would not find the styles in Application.Resources.
     // The Shell provides the flyout (menu hamburguesa, constitucion anexo A.9) and the navigation
     // stack; LibraryPage keeps pushing ReaderPage/AboutPage with Navigation.PushAsync as before.
-    protected override Window CreateWindow(IActivationState? activationState) =>
-        new(_services.GetRequiredService<AppShell>());
+    protected override Window CreateWindow(IActivationState? activationState)
+    {
+        var window = new Window(_services.GetRequiredService<AppShell>());
+#if DEBUG
+        SocShared.AuthorNotes.Attach(window);   // notas de autor: SOLO Debug, desactivado en Release/produccion
+#endif
+        return window;
+    }
 }

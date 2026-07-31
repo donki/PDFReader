@@ -55,8 +55,8 @@
                 </VerticalStackLayout>
             </Border>
 
-            <!-- Donaciones -->
-            <Border Style="{StaticResource Card}">
+            <!-- Donaciones (Ko-fi) — oculto a petición del autor en todas las apps. -->
+            <Border Style="{StaticResource Card}" IsVisible="False">
                 <VerticalStackLayout Padding="20,18" Spacing="12">
                     <Label x:Name="SupportTitleLabel"
                            Style="{StaticResource CardTitle}"

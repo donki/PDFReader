@@ -349,7 +349,8 @@ public partial class LibraryPage : ContentPage
         if (sender is not BindableObject { BindingContext: DocumentListItem item })
             return;
 
-        var confirmed = await DisplayAlertAsync(
+        var confirmed = await SocShared.ModernDialog.AlertAsync(
+            this,
             _localization["remove_title"],
             _localization.Format("remove_message", item.DisplayName),
             _localization["remove"],
@@ -382,5 +383,5 @@ public partial class LibraryPage : ContentPage
     }
 
     private Task ShowAlertAsync(string title, string message) =>
-        DisplayAlertAsync(title, message, _localization["ok"]);
+        SocShared.ModernDialog.AlertAsync(this, title, message, _localization["ok"]);
 }

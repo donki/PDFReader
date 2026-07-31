@@ -246,9 +246,10 @@ public partial class ReaderPage : ContentPage
             _backLayer.IsVisible = true;
 
             // Give the new bitmap time to decode while still invisible, then fade it in. The old
-            // layer is untouched underneath the whole time.
-            await Task.Delay(120);
-            await _backLayer.FadeToAsync(1, 90, Easing.CubicOut);
+            // layer is untouched underneath the whole time. Retardos reducidos para que el cambio
+            // de página se sienta más ágil (antes 120+90 ms ≈ 210 ms de animación por página).
+            await Task.Delay(45);
+            await _backLayer.FadeToAsync(1, 60, Easing.CubicOut);
 
             _frontLayer.IsVisible = false;
             _frontLayer.Opacity = 1; // restore for its next turn as the back layer
@@ -371,6 +372,20 @@ public partial class ReaderPage : ContentPage
     {
         if (_document is not null && _pageIndex < _document.PageCount - 1)
             await ShowPageAsync(_pageIndex + 1, resetView: true);
+    }
+
+    // Deslizar a la izquierda pasa a la página siguiente; a la derecha, a la anterior. Solo
+    // cuando NO hay zoom (con zoom, el gesto de arrastre sirve para mover la página).
+    private void OnSwipeLeft(object? sender, SwipedEventArgs e)
+    {
+        if (_zoom <= MinZoom + 0.01)
+            OnNextClicked(sender, e);
+    }
+
+    private void OnSwipeRight(object? sender, SwipedEventArgs e)
+    {
+        if (_zoom <= MinZoom + 0.01)
+            OnPreviousClicked(sender, e);
     }
 
     private void OnZoomInClicked(object? sender, EventArgs e) => SetZoom(_zoom * ZoomStep);
@@ -497,15 +512,14 @@ public partial class ReaderPage : ContentPage
 
         var pageCount = _document.PageCount;
 
-        var answer = await DisplayPromptAsync(
+        var answer = await SocShared.ModernDialog.PromptAsync(
+            this,
             _localization["goto_title"],
             _localization.Format("goto_message", pageCount),
             _localization["go"],
             _localization["cancel"],
-            _localization["goto_placeholder"],
-            maxLength: 6,
-            keyboard: Keyboard.Numeric,
-            initialValue: (_pageIndex + 1).ToString(CultureInfo.CurrentCulture));
+            (_pageIndex + 1).ToString(CultureInfo.CurrentCulture),
+            _localization["goto_placeholder"]);
 
         if (string.IsNullOrWhiteSpace(answer))
             return; // Cancelled.
@@ -607,8 +621,9 @@ public partial class ReaderPage : ContentPage
         UpdateSearchStatus();
 
         // Re-render even when the match is on the current page: the highlight is painted into
-        // the bitmap, so moving between matches on one page still needs a new render.
-        await ShowPageAsync(match.PageIndex, resetView: true);
+        // the bitmap, so moving between matches on one page still needs a new render. Con
+        // `silent` no se muestra el spinner de carga (el re-render es rápido y parpadeaba).
+        await ShowPageAsync(match.PageIndex, resetView: true, silent: true);
     }
 
     private void UpdateSearchStatus()
@@ -651,5 +666,5 @@ public partial class ReaderPage : ContentPage
     }
 
     private Task ShowAlertAsync(string title, string message) =>
-        DisplayAlertAsync(title, message, _localization["ok"]);
+        SocShared.ModernDialog.AlertAsync(this, title, message, _localization["ok"]);
 }
