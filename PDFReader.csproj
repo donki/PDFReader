@@ -77,4 +77,17 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
   </ItemGroup>
 
+  <!-- Ficheros compartidos por las 7 apps (una sola fuente de verdad). Se perdieron en el
+       incidente de reorganizacion: sin ellos el proyecto no compila, porque las paginas usan
+       SocShared.ModernDialog. -->
+  <ItemGroup>
+    <Compile Include="..\Shared\AuthorNotes.cs" Link="AuthorNotes.cs" />
+    <Compile Include="..\Shared\ModernDialog.cs" Link="ModernDialog.cs" />
+  </ItemGroup>
+
+  <!-- Firma Release centralizada (constitucion 7), igual que en las otras 6 apps. Define
+       AndroidKeyStore=true y el formato aab, por lo que manda sobre la seccion de Release
+       de mas arriba. Se perdio en el incidente de reorganizacion. -->
+  <Import Project="..\Shared\signing.props" />
+
 </Project>
