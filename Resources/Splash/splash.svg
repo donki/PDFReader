@@ -1,14 +1,9 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg width="456" height="456" viewBox="0 0 456 456" version="1.1" xmlns="http://www.w3.org/2000/svg">
-    <!-- Mismo documento que el icono, sobre el rojo del splash -->
-    <path d="M156 100h116l44 44v196a16 16 0 0 1-16 16H156a16 16 0 0 1-16-16V116a16 16 0 0 1 16-16z"
-          fill="#FFFFFF" />
-    <path d="M272 100l44 44h-44z" fill="#C9CCD3" />
-
-    <rect x="204" y="196" width="88" height="12" rx="6" fill="#C9CCD3" />
-    <rect x="168" y="236" width="124" height="12" rx="6" fill="#C9CCD3" />
-    <rect x="168" y="276" width="124" height="12" rx="6" fill="#C9CCD3" />
-    <rect x="168" y="316" width="80" height="12" rx="6" fill="#C9CCD3" />
-
-    <path d="M172 100h48v112l-24-22-24 22z" fill="#8A0E17" />
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Splash: documento blanco centrado sobre fondo indigo (MauiSplashScreen Color=#3525CD). -->
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <path fill="#FFFFFF" d="M148 72 h164 l92 92 v244 a30 30 0 0 1 -30 30 H148 a30 30 0 0 1 -30 -30 V102 a30 30 0 0 1 30 -30 Z"/>
+  <path fill="#C3C0FF" d="M312 72 l92 92 h-68 a24 24 0 0 1 -24 -24 Z"/>
+  <rect x="168" y="228" width="176" height="16" rx="8" fill="#C3C0FF"/>
+  <rect x="168" y="270" width="176" height="16" rx="8" fill="#C3C0FF"/>
+  <rect x="168" y="312" width="120" height="16" rx="8" fill="#C3C0FF"/>
 </svg>
