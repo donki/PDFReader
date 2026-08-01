@@ -6,6 +6,17 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 sigue la sección 6 de la constitución: `ApplicationDisplayVersion` legible por el usuario y
 `ApplicationVersion` entero incremental para Play Store.
 
+## [2026.08.01.0] - 2026-08-01
+
+`versionCode` 202608010.
+
+### Corregido
+- El icono y el splash usaban todavía el rojo `#B3121E` de la marca anterior en el `.csproj`,
+  cuando los SVG ya eran del índigo unificado `#3525CD` (su propio comentario lo decía). El fondo
+  rojo asomaba detrás del splash.
+- `Resources\AppIcon\play_store_icon.png` regenerado desde los SVG actuales: era el icono rojo
+  anterior al rediseño del 28-jul y no se correspondía con el que muestra el dispositivo.
+
 ## [2026.07.15.0] - 2026-07-15
 
 Versión inicial. `versionCode` 202607150.
