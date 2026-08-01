@@ -2,37 +2,94 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="PDFReader.Pages.ReaderPage"
-             BackgroundColor="{AppThemeBinding Light={StaticResource PdfCanvasLight}, Dark={StaticResource PdfCanvasDark}}">
+             BackgroundColor="{AppThemeBinding Light={StaticResource CanvasLight}, Dark={StaticResource CanvasDark}}">
 
-    <Grid RowDefinitions="*,Auto">
+    <Grid RowDefinitions="Auto,*,Auto">
 
-        <!-- Lienzo de la pagina -->
-        <ScrollView Grid.Row="0"
-                    x:Name="PageScroll"
-                    Orientation="Both"
-                    HorizontalScrollBarVisibility="Never"
-                    VerticalScrollBarVisibility="Default">
-            <Grid x:Name="PageHost" Padding="8">
-                <Grid.GestureRecognizers>
-                    <PinchGestureRecognizer PinchUpdated="OnPinchUpdated" />
-                </Grid.GestureRecognizers>
+        <!-- Barra de busqueda: oculta hasta que se pulsa la lupa, y no disponible
+             por debajo de Android 15, que es donde llega Page.searchText. -->
+        <Border Grid.Row="0"
+                x:Name="SearchBar"
+                IsVisible="False"
+                Style="{StaticResource Card}"
+                Margin="8,8,8,0">
+            <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto"
+                  Padding="6,4"
+                  ColumnSpacing="2">
 
-                <Image x:Name="PageImage"
-                       Aspect="AspectFit"
-                       HorizontalOptions="Center"
-                       VerticalOptions="Center" />
+                <Entry Grid.Column="0"
+                       x:Name="SearchEntry"
+                       ReturnType="Search"
+                       Completed="OnSearchSubmitted" />
+
+                <Label Grid.Column="1"
+                       x:Name="SearchStatusLabel"
+                       Style="{StaticResource SecondaryText}"
+                       FontSize="12"
+                       VerticalTextAlignment="Center"
+                       Margin="4,0" />
+
+                <Button Grid.Column="2"
+                        x:Name="PreviousMatchButton"
+                        ImageSource="{AppThemeBinding Light=ic_chevron_up.png, Dark=ic_chevron_up_dark.png}"
+                        Style="{StaticResource ReaderToolButton}"
+                        Clicked="OnPreviousMatchClicked" />
+
+                <Button Grid.Column="3"
+                        x:Name="NextMatchButton"
+                        ImageSource="{AppThemeBinding Light=ic_chevron_down.png, Dark=ic_chevron_down_dark.png}"
+                        Style="{StaticResource ReaderToolButton}"
+                        Clicked="OnNextMatchClicked" />
+
+                <Button Grid.Column="4"
+                        x:Name="CloseSearchButton"
+                        ImageSource="{AppThemeBinding Light=ic_close.png, Dark=ic_close_dark.png}"
+                        Style="{StaticResource ReaderToolButton}"
+                        Clicked="OnCloseSearchClicked" />
             </Grid>
-        </ScrollView>
+        </Border>
+
+        <!--
+            Lienzo de la pagina. Sin ScrollView a proposito: en Android un ScrollView se traga el
+            multitouch y el PinchGestureRecognizer de dentro no llega a dispararse nunca
+            (dotnet/maui#5614, #5612). El desplazamiento se hace con un PanGestureRecognizer.
+        -->
+        <Grid Grid.Row="1"
+              x:Name="Viewport"
+              Padding="8"
+              IsClippedToBounds="True">
+            <Grid.GestureRecognizers>
+                <PinchGestureRecognizer PinchUpdated="OnPinchUpdated" />
+                <!-- El cambio de página con el dedo (sin zoom) se detecta dentro de OnPanUpdated: en
+                     Android un SwipeGestureRecognizer junto a un PanGestureRecognizer nunca dispara
+                     porque el Pan se traga los eventos táctiles. -->
+                <PanGestureRecognizer PanUpdated="OnPanUpdated" />
+                <TapGestureRecognizer NumberOfTapsRequired="2" Tapped="OnDoubleTapped" />
+            </Grid.GestureRecognizers>
+
+            <!--
+                Dos imagenes apiladas para el afinado de nitidez sin parpadeo: la version nueva se
+                carga en la capa trasera y se trae al frente encima de la anterior, que sigue
+                visible por debajo hasta que la nueva esta pintada. La transformacion de zoom vive
+                en este contenedor, no en cada imagen, para que el intercambio no la altere.
+            -->
+            <Grid x:Name="PageContainer"
+                  HorizontalOptions="Center"
+                  VerticalOptions="Center">
+                <Image x:Name="PageImageA" Aspect="AspectFit" />
+                <Image x:Name="PageImageB" Aspect="AspectFit" IsVisible="False" />
+            </Grid>
+        </Grid>
 
         <!-- Indicador de carga -->
-        <VerticalStackLayout Grid.Row="0"
+        <VerticalStackLayout Grid.Row="1"
                              x:Name="BusyPanel"
                              IsVisible="False"
                              VerticalOptions="Center"
                              HorizontalOptions="Center"
                              Spacing="10">
             <ActivityIndicator x:Name="BusyIndicator"
-                               Color="{StaticResource PdfPrimary}"
+                               Color="{StaticResource Primary}"
                                HorizontalOptions="Center" />
             <Label x:Name="BusyLabel"
                    Style="{StaticResource SecondaryText}"
@@ -40,22 +97,22 @@
         </VerticalStackLayout>
 
         <!-- Barra de herramientas -->
-        <Border Grid.Row="1"
+        <Border Grid.Row="2"
                 Style="{StaticResource Card}"
                 Margin="8,4,8,8">
-            <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto"
+            <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto"
                   Padding="6,4"
                   ColumnSpacing="2">
 
                 <Button Grid.Column="0"
                         x:Name="PreviousButton"
-                        Text="◀"
+                        ImageSource="{AppThemeBinding Light=ic_chevron_left.png, Dark=ic_chevron_left_dark.png}"
                         Style="{StaticResource ReaderToolButton}"
                         Clicked="OnPreviousClicked" />
 
                 <Button Grid.Column="1"
                         x:Name="ZoomOutButton"
-                        Text="－"
+                        ImageSource="{AppThemeBinding Light=ic_minus.png, Dark=ic_minus_dark.png}"
                         Style="{StaticResource ReaderToolButton}"
                         Clicked="OnZoomOutClicked" />
 
@@ -72,15 +129,21 @@
 
                 <Button Grid.Column="3"
                         x:Name="ZoomInButton"
-                        Text="＋"
+                        ImageSource="{AppThemeBinding Light=ic_plus.png, Dark=ic_plus_dark.png}"
                         Style="{StaticResource ReaderToolButton}"
                         Clicked="OnZoomInClicked" />
 
                 <Button Grid.Column="4"
                         x:Name="NextButton"
-                        Text="▶"
+                        ImageSource="{AppThemeBinding Light=ic_chevron_right.png, Dark=ic_chevron_right_dark.png}"
                         Style="{StaticResource ReaderToolButton}"
                         Clicked="OnNextClicked" />
+
+                <Button Grid.Column="5"
+                        x:Name="SearchButton"
+                        ImageSource="{AppThemeBinding Light=ic_search.png, Dark=ic_search_dark.png}"
+                        Style="{StaticResource ReaderToolButton}"
+                        Clicked="OnSearchClicked" />
             </Grid>
         </Border>
 

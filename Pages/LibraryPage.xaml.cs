@@ -18,6 +18,7 @@ public partial class LibraryPage : ContentPage
     private readonly ILocalizationService _localization;
     private readonly PendingDocumentQueue _pendingDocuments;
     private readonly IServiceProvider _services;
+    private readonly UpdateService _updateService;
     private readonly ILogger<LibraryPage> _logger;
 
     private readonly ObservableCollection<DocumentListItem> _documents = [];
@@ -29,6 +30,7 @@ public partial class LibraryPage : ContentPage
         ILocalizationService localization,
         PendingDocumentQueue pendingDocuments,
         IServiceProvider services,
+        UpdateService updateService,
         ILogger<LibraryPage> logger)
     {
         InitializeComponent();
@@ -38,6 +40,7 @@ public partial class LibraryPage : ContentPage
         _localization = localization;
         _pendingDocuments = pendingDocuments;
         _services = services;
+        _updateService = updateService;
         _logger = logger;
 
         DocumentsView.ItemsSource = _documents;
@@ -51,12 +54,18 @@ public partial class LibraryPage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
+
+        // Comprobacion de version al arrancar (constitucion, seccion 15): avisa si hay una version
+        // mas reciente y propone actualizar. No bloqueante y se hace una sola vez por sesion.
+        _ = _updateService.CheckAndPromptAsync(this);
+
         await RefreshAsync();
         await ImportPendingDocumentsAsync();
     }
 
     private void ApplyTexts()
     {
+        Title = _localization["library_title"];
         AppNameLabel.Text = _localization["app_name"];
         TaglineLabel.Text = _localization["app_tagline"];
         RecentLabel.Text = _localization["recent_documents"].ToUpper(CultureInfo.CurrentCulture);
@@ -208,14 +217,26 @@ public partial class LibraryPage : ContentPage
             return; // An import is already running; ignore the double tap.
 
         PdfDocumentEntry? entry = null;
+        string? password = null;
         try
         {
             SetBusy(true);
 
             entry = await _library.ImportAsync(content, displayName);
 
-            // Open it once up front: an unreadable file must not reach the library.
-            using (var document = await _renderer.OpenAsync(_library.GetFilePath(entry)))
+            // Open it once up front: an unreadable file must not reach the library. A protected
+            // document is perfectly usable, so ask for the password instead of rejecting it.
+            var opened = await OpenWithPasswordRetryAsync(entry);
+            if (opened is null)
+            {
+                // Cancelled at the password prompt: the file never becomes a library entry.
+                await _library.RemoveAsync(entry);
+                entry = null;
+                return;
+            }
+
+            password = opened.Value.Password;
+            using (var document = opened.Value.Document)
             {
                 await _library.SetPageCountAsync(entry, document.PageCount);
             }
@@ -253,12 +274,44 @@ public partial class LibraryPage : ContentPage
         }
 
         if (entry is not null)
-            await OpenReaderAsync(entry);
+            await OpenReaderAsync(entry, password);
+    }
+
+    /// <summary>
+    /// Opens the imported document, asking for the password for as long as it stays protected.
+    /// Returns null when the user cancels the prompt.
+    /// </summary>
+    private async Task<(IPdfDocument Document, string? Password)?> OpenWithPasswordRetryAsync(PdfDocumentEntry entry)
+    {
+        var path = _library.GetFilePath(entry);
+        string? password = null;
+        var wrongPassword = false;
+
+        while (true)
+        {
+            try
+            {
+                return (await _renderer.OpenAsync(path, password), password);
+            }
+            catch (PdfOpenException ex) when (ex.Failure is PdfOpenFailure.PasswordProtected or PdfOpenFailure.WrongPassword)
+            {
+                _logger.LogWarning("{Document} needs a password ({Failure}).", entry.DisplayName, ex.Failure);
+
+                SetBusy(false);
+                password = await PasswordPromptPage.AskAsync(this, _localization, entry.DisplayName, wrongPassword);
+                if (password is null)
+                    return null;
+
+                wrongPassword = true; // Any further failure means the password they typed was wrong.
+                SetBusy(true);
+            }
+        }
     }
 
     private string DescribeFailure(PdfOpenFailure failure) => failure switch
     {
-        PdfOpenFailure.PasswordProtected => _localization["error_protected"],
+        PdfOpenFailure.PasswordProtected or PdfOpenFailure.WrongPassword => _localization["error_protected"],
+        PdfOpenFailure.PasswordUnsupported => _localization["error_password_unsupported"],
         PdfOpenFailure.InvalidDocument => _localization["error_not_pdf"],
         _ => _localization["error_not_pdf"]
     };
@@ -271,7 +324,12 @@ public partial class LibraryPage : ContentPage
         await OpenReaderAsync(item.Entry);
     }
 
-    private async Task OpenReaderAsync(PdfDocumentEntry entry)
+    /// <param name="password">
+    /// Known password of a protected document, so a freshly imported one does not ask twice.
+    /// Null when opening from the list: the reader asks for it again rather than the app keeping
+    /// the password around between sessions.
+    /// </param>
+    private async Task OpenReaderAsync(PdfDocumentEntry entry, string? password = null)
     {
         if (!File.Exists(_library.GetFilePath(entry)))
         {
@@ -282,7 +340,20 @@ public partial class LibraryPage : ContentPage
         }
 
         var reader = ActivatorUtilities.CreateInstance<ReaderPage>(_services, entry);
+        reader.InitialPassword = password;
         await Navigation.PushAsync(reader);
+
+        // Abrir varios PDF seguidos (p. ej. desde un gestor de archivos que reenvia intents ACTION_VIEW)
+        // apilaba un ReaderPage nuevo cada vez. Cada lector retiene sus bitmaps de pagina, y tras unos
+        // pocos documentos grandes la app se quedaba sin memoria y petaba. Al abrir el nuevo lector se
+        // eliminan de la pila los lectores anteriores: queda [Library, LectorActual].
+        foreach (var previous in Navigation.NavigationStack
+                     .OfType<ReaderPage>()
+                     .Where(page => !ReferenceEquals(page, reader))
+                     .ToList())
+        {
+            Navigation.RemovePage(previous);
+        }
     }
 
     private async void OnRemoveClicked(object? sender, EventArgs e)
@@ -290,7 +361,8 @@ public partial class LibraryPage : ContentPage
         if (sender is not BindableObject { BindingContext: DocumentListItem item })
             return;
 
-        var confirmed = await DisplayAlertAsync(
+        var confirmed = await SocShared.ModernDialog.AlertAsync(
+            this,
             _localization["remove_title"],
             _localization.Format("remove_message", item.DisplayName),
             _localization["remove"],
@@ -323,5 +395,5 @@ public partial class LibraryPage : ContentPage
     }
 
     private Task ShowAlertAsync(string title, string message) =>
-        DisplayAlertAsync(title, message, _localization["ok"]);
+        SocShared.ModernDialog.AlertAsync(this, title, message, _localization["ok"]);
 }

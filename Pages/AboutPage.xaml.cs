@@ -9,9 +9,7 @@ namespace PDFReader.Pages;
 public partial class AboutPage : ContentPage
 {
     private const string ContactEmail = "jsoladelarosa@gmail.com";
-    private const string DonationUrl = "https://ko-fi.com/pdfreader";
-
-    private static readonly Color ActiveLanguage = Color.FromArgb("#B3121E");
+    private const string DonationUrl = "https://ko-fi.com/josepsola";
 
     private readonly ILocalizationService _localization;
     private readonly ILogger<AboutPage> _logger;
@@ -51,6 +49,7 @@ public partial class AboutPage : ContentPage
 
         LicenseTitleLabel.Text = _localization["license_title"];
         LicenseTextLabel.Text = _localization["license_text"];
+        LicenseCopyrightLabel.Text = _localization["license_copyright"];
 
         LegalTitleLabel.Text = _localization["legal_title"];
         LegalText1Label.Text = _localization["legal_text_1"];
@@ -70,11 +69,21 @@ public partial class AboutPage : ContentPage
 
     private static void StyleLanguageButton(Button button, bool active)
     {
-        button.BackgroundColor = active ? ActiveLanguage : Colors.Transparent;
-        button.TextColor = active ? Colors.White : ActiveLanguage;
-        button.BorderColor = ActiveLanguage;
+        var brand = GetColor("Primary");
+        button.BackgroundColor = active ? brand : Colors.Transparent;
+        button.TextColor = active ? GetColor("White") : brand;
+        button.BorderColor = brand;
         button.BorderWidth = active ? 0 : 1;
     }
+
+    /// <summary>
+    /// Resolves a color token from the merged resource dictionaries, so the code-behind consumes the
+    /// same palette as the markup instead of duplicating literals (constitucion, seccion 24).
+    /// </summary>
+    private static Color GetColor(string key) =>
+        Application.Current?.Resources.TryGetValue(key, out var value) == true && value is Color color
+            ? color
+            : Colors.Transparent;
 
     private void OnSpanishClicked(object? sender, EventArgs e) => SetLanguage("es");
 
@@ -154,8 +163,8 @@ public partial class AboutPage : ContentPage
             {
                 LaunchMode = BrowserLaunchMode.SystemPreferred,
                 TitleMode = BrowserTitleMode.Show,
-                PreferredToolbarColor = Color.FromArgb("#E67E22"),
-                PreferredControlColor = Colors.White
+                PreferredToolbarColor = GetColor("Accent"),
+                PreferredControlColor = GetColor("White")
             });
         }
         catch (Exception ex)
@@ -182,5 +191,5 @@ public partial class AboutPage : ContentPage
     }
 
     private Task ShowAlertAsync(string title, string message) =>
-        DisplayAlertAsync(title, message, _localization["ok"]);
+        SocShared.ModernDialog.AlertAsync(this, title, message, _localization["ok"]);
 }
