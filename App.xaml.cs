@@ -20,6 +20,12 @@ public partial class App : Application
 
     // Pages are resolved here, not injected into the constructor: a page built before
     // InitializeComponent() runs would not find the styles in Application.Resources.
-    protected override Window CreateWindow(IActivationState? activationState) =>
-        new(new NavigationPage(_services.GetRequiredService<LibraryPage>()));
+    protected override Window CreateWindow(IActivationState? activationState)
+    {
+        var window = new Window(new NavigationPage(_services.GetRequiredService<LibraryPage>()));
+#if DEBUG
+        SocShared.AuthorNotes.Attach(window);   // notas de autor: SOLO Debug, desactivado en Release/produccion
+#endif
+        return window;
+    }
 }
