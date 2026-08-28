@@ -6,6 +6,16 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 sigue la sección 6 de la constitución: `ApplicationDisplayVersion` legible por el usuario y
 `ApplicationVersion` entero incremental para Play Store.
 
+## 2026.08.28.0 (202608280)
+
+### Corregido
+- **La aplicación abortaba nada más arrancar.** `LibraryPage` pide `UpdateService` por
+  constructor y el servicio **no estaba registrado** en `MauiProgram`, así que el contenedor
+  reventaba al crear la ventana: `InvalidOperationException: CannotResolveService,
+  PDFReader.Services.UpdateService, PDFReader.Pages.LibraryPage`, en `App.CreateWindow`. Se veía
+  el splash y la actividad se destruía acto seguido. Es el mismo fallo que tuvo File Manager el
+  2026-08-01.
+
 ## [2026.08.01.0] - 2026-08-01
 
 `versionCode` 202608010.

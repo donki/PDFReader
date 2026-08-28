@@ -21,6 +21,10 @@ public static class MauiProgram
         builder.Services.AddSingleton<ILocalizationService, LocalizationService>();
         builder.Services.AddSingleton<ILibraryService, LibraryService>();
         builder.Services.AddSingleton<PendingDocumentQueue>();
+        // Sin esta linea la aplicacion abortaba al arrancar: LibraryPage lo pide por constructor
+        // y el contenedor no sabia construirlo (CannotResolveService). Mismo fallo que tuvo
+        // File Manager el 2026-08-01.
+        builder.Services.AddSingleton<UpdateService>();
 
 #if ANDROID
         builder.Services.AddSingleton<IPdfDocumentService, Platforms.Android.AndroidPdfDocumentService>();
