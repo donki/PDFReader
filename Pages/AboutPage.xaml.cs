@@ -9,7 +9,6 @@ namespace PDFReader.Pages;
 public partial class AboutPage : ContentPage
 {
     private const string ContactEmail = "jsoladelarosa@gmail.com";
-    private const string DonationUrl = "https://ko-fi.com/josepsola";
 
     private readonly ILocalizationService _localization;
     private readonly ILogger<AboutPage> _logger;
@@ -37,9 +36,6 @@ public partial class AboutPage : ContentPage
         ContactButton.Text = ContactEmail;
         ContactHintLabel.Text = _localization["contact_hint"];
 
-        SupportTitleLabel.Text = _localization["support_title"];
-        SupportButton.Text = _localization["support_button"];
-        SupportHintLabel.Text = _localization["support_hint"];
 
         LanguageTitleLabel.Text = _localization["language_title"];
         LanguageHintLabel.Text = _localization["language_hint"];
@@ -155,40 +151,6 @@ public partial class AboutPage : ContentPage
     }
 #endif
 
-    private async void OnDonationClicked(object? sender, EventArgs e)
-    {
-        try
-        {
-            await Browser.Default.OpenAsync(new Uri(DonationUrl), new BrowserLaunchOptions
-            {
-                LaunchMode = BrowserLaunchMode.SystemPreferred,
-                TitleMode = BrowserTitleMode.Show,
-                PreferredToolbarColor = GetColor("Accent"),
-                PreferredControlColor = GetColor("White")
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Could not open the donation link.");
-            await CopyDonationLinkAsync(ex);
-        }
-    }
-
-    private async Task CopyDonationLinkAsync(Exception originalException)
-    {
-        try
-        {
-            await Clipboard.Default.SetTextAsync(DonationUrl);
-            await ShowAlertAsync(
-                _localization["browser_unavailable_title"],
-                _localization.Format("browser_copied", DonationUrl));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Could not copy the donation link to the clipboard.");
-            await ShowAlertAsync(_localization["error"], _localization.Format("error_browser", originalException.Message));
-        }
-    }
 
     private Task ShowAlertAsync(string title, string message) =>
         SocShared.ModernDialog.AlertAsync(this, title, message, _localization["ok"]);
