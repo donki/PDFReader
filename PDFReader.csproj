@@ -19,8 +19,8 @@
     <ApplicationId>com.socratic.pdfreader</ApplicationId>
 
     <!-- Versions (constitucion seccion 6) -->
-    <ApplicationDisplayVersion>2026.09.12.0</ApplicationDisplayVersion>
-    <ApplicationVersion>202609120</ApplicationVersion>
+    <ApplicationDisplayVersion>2026.09.12.1</ApplicationDisplayVersion>
+    <ApplicationVersion>2026091201</ApplicationVersion>
 
     <!-- Accept Android SDK Licenses -->
     <AcceptAndroidSDKLicenses>true</AcceptAndroidSDKLicenses>
