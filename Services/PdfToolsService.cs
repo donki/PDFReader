@@ -233,6 +233,54 @@ public sealed class PdfToolsService(ILogger<PdfToolsService> logger) : IPdfTools
         }, cancellationToken);
     }
 
+    public async Task FlattenAnnotationsAsync(PdfInput input, IReadOnlyList<Models.Annotation> annotations, string outputPath, CancellationToken cancellationToken = default)
+    {
+        await PdfFontResolver.EnsureInstalledAsync();
+        await Task.Run(() =>
+        {
+            using var document = Open(input, PdfDocumentOpenMode.Modify);
+            foreach (var group in annotations.GroupBy(a => a.PageIndex))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (group.Key < 0 || group.Key >= document.PageCount)
+                    continue;
+
+                var page = document.Pages[group.Key];
+                using var gfx = XGraphics.FromPdfPage(page, XGraphicsPdfPageOptions.Append);
+
+                // XGraphics draws in the page's unrotated space, but the annotations were made
+                // on the page as displayed (/Rotate applied). A rotation of the graphics maps the
+                // displayed coordinates back onto the stored page.
+                var w0 = gfx.PageSize.Width;
+                var h0 = gfx.PageSize.Height;
+                var rotate = ((page.Rotate % 360) + 360) % 360;
+                double w = w0, h = h0;
+                switch (rotate)
+                {
+                    case 90:
+                        (w, h) = (h0, w0);
+                        gfx.TranslateTransform(0, w);
+                        gfx.RotateTransform(-90);
+                        break;
+                    case 180:
+                        gfx.TranslateTransform(w, h);
+                        gfx.RotateTransform(180);
+                        break;
+                    case 270:
+                        (w, h) = (h0, w0);
+                        gfx.TranslateTransform(h, 0);
+                        gfx.RotateTransform(90);
+                        break;
+                }
+
+                foreach (var annotation in group)
+                    AnnotationPainter.Paint(gfx, annotation, w, h);
+            }
+
+            Save(document, outputPath);
+        }, cancellationToken);
+    }
+
     // ---------------------------------------------------------------------
 
     private PdfDocument Open(PdfInput input, PdfDocumentOpenMode mode)

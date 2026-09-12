@@ -272,6 +272,13 @@ public partial class ReaderPage : ContentPage
         }
     }
 
+    /// <summary>Opens the annotation editor on the current page.</summary>
+    private async void OnAnnotateClicked(object? sender, EventArgs e)
+    {
+        var editor = ActivatorUtilities.CreateInstance<AnnotatePage>(_services, _entry, new PdfInput(_library.GetFilePath(_entry), _password), _pageIndex);
+        await Navigation.PushAsync(editor);
+    }
+
     /// <summary>Opens the page organizer (rotate, reorder, delete, extract) for this document.</summary>
     private async void OnPagesClicked(object? sender, EventArgs e)
     {

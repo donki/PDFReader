@@ -56,4 +56,7 @@ public interface IPdfToolsService
 
     /// <summary>Draws <paramref name="text"/> diagonally across every page, translucent.</summary>
     Task WatermarkAsync(PdfInput input, string text, double opacity, string outputPath, CancellationToken cancellationToken = default);
+
+    /// <summary>Paints the annotations onto their pages (flattened: part of the page content, visible in any viewer).</summary>
+    Task FlattenAnnotationsAsync(PdfInput input, IReadOnlyList<Models.Annotation> annotations, string outputPath, CancellationToken cancellationToken = default);
 }

@@ -1,4 +1,7 @@
-# 📕 PDF Reader
+# 📕 PDF Editor
+
+> Antes «PDF Reader». El paquete sigue siendo `com.socratic.pdfreader` (mismo id en Play, misma
+> carpeta `Mobile/PDFReader`); solo cambia el nombre que ve el usuario.
 
 Lector y editor de PDF para **Android y Windows** desarrollado en .NET MAUI (un solo proyecto para
 las dos plataformas). Sin conexión, **sin ningún permiso** y con los documentos siempre en el
@@ -36,6 +39,25 @@ Cada herramienta crea un documento nuevo en la biblioteca; el original no se toc
 - **Proteger con contraseña** y **quitar contraseña**
 - **Numerar páginas** y **marca de agua** en diagonal
 - **Guardar fuera de la app** desde el lector («Guardar como» en Windows, creador de documentos en Android)
+
+### ✍️ Anotar y firmar
+Desde el lector (icono de lápiz). Todo se guarda **aplanado** en un PDF nuevo, visible en cualquier
+visor; el original no se toca.
+- **Bolígrafo**, **subrayador**, **rectángulo**, **elipse**
+- **Tapar**: un recuadro blanco sobre lo que quieras ocultar; con una casilla de texto encima es la
+  forma de «corregir un dato» (ver por qué no se edita el texto original, más abajo)
+- **Casillas de texto**: alineación izquierda/centro/derecha, texto **vertical**, cuatro tipografías
+  (Open Sans, Lora serif, Roboto Mono, Caveat manuscrita), tamaño, negrita y color; se mueven,
+  redimensionan y editan al tocarlas
+- **Firma manuscrita**: se dibuja con el dedo o el ratón, se guarda y se reutiliza
+
+### ¿Por qué no se edita el texto original?
+Un PDF no guarda párrafos: guarda glifos colocados uno a uno en coordenadas absolutas, normalmente
+con fuentes incrustadas en subconjunto (solo los caracteres que aparecen). Reescribir una frase
+exige reconocer las líneas, tener la fuente completa, recalcular el ajuste del párrafo y reescribir
+el flujo de contenido sin romper el resto: es lo que hacen Acrobat o Foxit con motores propietarios
+enormes. Las librerías libres compatibles con la constitución no lo hacen; «tapar y reescribir»
+cubre la mayoría de los casos reales.
 
 ## 🧱 Cómo se renderizan y escriben los PDF
 
@@ -127,7 +149,7 @@ PDFReader/
    para saltar a otra.
 3. **Vuelve a la biblioteca**: el documento queda en la lista y reabre por la última página leída.
 
-También puedes abrir un PDF desde un gestor de archivos o el correo con **"Abrir con → PDF Reader"**.
+También puedes abrir un PDF desde un gestor de archivos o el correo con **"Abrir con → PDF Editor"**.
 
 ## 🐛 Solución de problemas
 

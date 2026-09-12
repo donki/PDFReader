@@ -283,6 +283,7 @@ public partial class PageOrganizerPage : ContentPage
             reader.InitialPassword = null; // the rearranged copy is written unencrypted
             Navigation.InsertPageBefore(reader, this);
             await Navigation.PopAsync();
+            DropOtherReaders(reader);
         }
         catch (Exception ex)
         {
@@ -290,5 +291,12 @@ public partial class PageOrganizerPage : ContentPage
             _logger.LogError(ex, "Could not save the rearranged pages of {Document}.", _entry.DisplayName);
             await SocShared.ModernDialog.AlertAsync(this, _localization["error"], _localization.Format("error_tool", ex.Message), _localization["ok"]);
         }
+    }
+
+    /// <summary>One reader on the stack at a time: each keeps its page bitmaps, and a chain of them eats the memory.</summary>
+    private void DropOtherReaders(ReaderPage keep)
+    {
+        foreach (var previous in Navigation.NavigationStack.OfType<ReaderPage>().Where(page => !ReferenceEquals(page, keep)).ToList())
+            Navigation.RemovePage(previous);
     }
 }

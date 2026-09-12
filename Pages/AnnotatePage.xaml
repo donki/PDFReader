@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="PDFReader.Pages.AnnotatePage"
+             Style="{StaticResource AppPage}">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <!-- Cabecera: documento, pagina y que herramienta esta activa -->
+        <Border Grid.Row="0" Style="{StaticResource Card}" Margin="8,8,8,4">
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto" Padding="6,4" ColumnSpacing="4">
+                <Button Grid.Column="0" x:Name="PreviousButton" Style="{StaticResource ReaderToolButton}"
+                        ImageSource="{AppThemeBinding Light=ic_chevron_left.png, Dark=ic_chevron_left_dark.png}" Clicked="OnPreviousClicked" />
+                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="1">
+                    <Label x:Name="TitleLabel" Style="{StaticResource BodyText}" FontAttributes="Bold" LineBreakMode="MiddleTruncation" MaxLines="1" />
+                    <Label x:Name="HintLabel" Style="{StaticResource SecondaryText}" FontSize="12" LineBreakMode="TailTruncation" MaxLines="1" />
+                </VerticalStackLayout>
+                <Label Grid.Column="2" x:Name="PageLabel" Style="{StaticResource BodyText}" FontSize="13" VerticalTextAlignment="Center" Margin="6,0" />
+                <Button Grid.Column="3" x:Name="NextButton" Style="{StaticResource ReaderToolButton}"
+                        ImageSource="{AppThemeBinding Light=ic_chevron_right.png, Dark=ic_chevron_right_dark.png}" Clicked="OnNextClicked" />
+            </Grid>
+        </Border>
+
+        <!-- La pagina y, encima, el lienzo de anotaciones del mismo tamaño -->
+        <Grid Grid.Row="1" x:Name="Viewport" Padding="8" IsClippedToBounds="True">
+            <Grid x:Name="PageContainer" HorizontalOptions="Center" VerticalOptions="Center" BackgroundColor="White">
+                <Image x:Name="PageImage" Aspect="Fill" />
+                <GraphicsView x:Name="Overlay"
+                              StartInteraction="OnStartInteraction"
+                              DragInteraction="OnDragInteraction"
+                              EndInteraction="OnEndInteraction" />
+            </Grid>
+            <ActivityIndicator x:Name="BusyIndicator" IsRunning="False" IsVisible="False" Color="{StaticResource Primary}"
+                               HorizontalOptions="Center" VerticalOptions="Center" />
+        </Grid>
+
+        <!-- Herramientas: seleccionar, boligrafo, subrayador, rectangulo, elipse, tapar, texto, firma | color, grosor, deshacer, borrar, guardar -->
+        <Border Grid.Row="2" Style="{StaticResource Card}" Margin="8,4,8,8">
+          <VerticalStackLayout>
+            <!-- Opciones de la casilla de texto (con la herramienta Texto o una casilla elegida): alineacion, vertical, tipografia -->
+            <ScrollView x:Name="TextOptions" Orientation="Horizontal" HorizontalScrollBarVisibility="Never" IsVisible="False">
+                <HorizontalStackLayout Padding="6,4,6,0" Spacing="2">
+                    <Button x:Name="AlignButton" Style="{StaticResource ReaderToolButton}" ImageSource="{AppThemeBinding Light=ic_align_left.png, Dark=ic_align_left_dark.png}" Clicked="OnAlignClicked" />
+                    <Button x:Name="VerticalButton" Style="{StaticResource ReaderToolButton}" ImageSource="{AppThemeBinding Light=ic_vertical.png, Dark=ic_vertical_dark.png}" Clicked="OnVerticalClicked" />
+                    <Button x:Name="FontButton" Style="{StaticResource ReaderToolButton}" WidthRequest="170" Text="Aa" FontSize="13" Clicked="OnFontClicked" />
+                    <Label x:Name="TextOptionsHint" Style="{StaticResource SecondaryText}" FontSize="12" VerticalTextAlignment="Center" Margin="10,0" />
+                </HorizontalStackLayout>
+            </ScrollView>
+            <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Never">
+                <HorizontalStackLayout Padding="6,4" Spacing="2">
+                    <Button x:Name="SelectButton" Style="{StaticResource ReaderToolButton}" ImageSource="{AppThemeBinding Light=ic_select.png, Dark=ic_select_dark.png}" Clicked="OnToolClicked" />
+                    <Button x:Name="PenButton" Style="{StaticResource ReaderToolButton}" ImageSource="{AppThemeBinding Light=ic_pen.png, Dark=ic_pen_dark.png}" Clicked="OnToolClicked" />
+                    <Button x:Name="HighlightButton" Style="{StaticResource ReaderToolButton}" ImageSource="{AppThemeBinding Light=ic_highlighter.png, Dark=ic_highlighter_dark.png}" Clicked="OnToolClicked" />
+                    <Button x:Name="RectButton" Style="{StaticResource ReaderToolButton}" ImageSource="{AppThemeBinding Light=ic_rect.png, Dark=ic_rect_dark.png}" Clicked="OnToolClicked" />
+                    <Button x:Name="EllipseButton" Style="{StaticResource ReaderToolButton}" ImageSource="{AppThemeBinding Light=ic_ellipse.png, Dark=ic_ellipse_dark.png}" Clicked="OnToolClicked" />
+                    <Button x:Name="WhiteoutButton" Style="{StaticResource ReaderToolButton}" ImageSource="{AppThemeBinding Light=ic_whiteout.png, Dark=ic_whiteout_dark.png}" Clicked="OnToolClicked" />
+                    <Button x:Name="TextButton" Style="{StaticResource ReaderToolButton}" ImageSource="{AppThemeBinding Light=ic_text.png, Dark=ic_text_dark.png}" Clicked="OnToolClicked" />
+                    <Button x:Name="SignatureButton" Style="{StaticResource ReaderToolButton}" ImageSource="{AppThemeBinding Light=ic_signature.png, Dark=ic_signature_dark.png}" Clicked="OnToolClicked" />
+
+                    <BoxView WidthRequest="1" Margin="4,10" Color="{AppThemeBinding Light={StaticResource PdfBorderLight}, Dark={StaticResource PdfBorderDark}}" />
+
+                    <Button x:Name="ColorButton" Style="{StaticResource ReaderToolButton}" WidthRequest="40" HeightRequest="40" CornerRadius="20" Margin="4,4" Clicked="OnColorClicked" />
+                    <Button x:Name="SizeButton" Style="{StaticResource ReaderToolButton}" ImageSource="{AppThemeBinding Light=ic_size.png, Dark=ic_size_dark.png}" Clicked="OnSizeClicked" />
+                    <Button x:Name="BoldButton" Style="{StaticResource ReaderToolButton}" ImageSource="{AppThemeBinding Light=ic_bold.png, Dark=ic_bold_dark.png}" Clicked="OnBoldClicked" />
+                    <Button x:Name="UndoButton" Style="{StaticResource ReaderToolButton}" ImageSource="{AppThemeBinding Light=ic_undo.png, Dark=ic_undo_dark.png}" Clicked="OnUndoClicked" />
+                    <Button x:Name="DeleteButton" Style="{StaticResource ReaderToolButton}" ImageSource="{AppThemeBinding Light=ic_trash.png, Dark=ic_trash_dark.png}" Clicked="OnDeleteClicked" />
+                    <Button x:Name="SaveButton" Style="{StaticResource ReaderToolButton}" ImageSource="ic_save_dark.png" BackgroundColor="{StaticResource PdfPrimary}" Clicked="OnSaveClicked" />
+                </HorizontalStackLayout>
+            </ScrollView>
+          </VerticalStackLayout>
+        </Border>
+
+        <Grid Grid.Row="0" Grid.RowSpan="3" x:Name="BusyOverlay" IsVisible="False" BackgroundColor="{StaticResource ScrimOverlay}">
+            <VerticalStackLayout VerticalOptions="Center" Spacing="14">
+                <ActivityIndicator IsRunning="True" Color="{StaticResource White}" HorizontalOptions="Center" />
+                <Label x:Name="BusyLabel" TextColor="{StaticResource White}" FontSize="14" HorizontalTextAlignment="Center" />
+            </VerticalStackLayout>
+        </Grid>
+    </Grid>
+</ContentPage>

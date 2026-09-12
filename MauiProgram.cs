@@ -15,6 +15,13 @@ public static class MauiProgram
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                // Tipografias de las casillas de texto (las mismas que incrusta PDFsharp al guardar).
+                fonts.AddFont("Lora-Regular.ttf", "Lora");
+                fonts.AddFont("Lora-Bold.ttf", "LoraBold");
+                fonts.AddFont("RobotoMono-Regular.ttf", "RobotoMono");
+                fonts.AddFont("RobotoMono-Bold.ttf", "RobotoMonoBold");
+                fonts.AddFont("Caveat-Regular.ttf", "Caveat");
+                fonts.AddFont("Caveat-Bold.ttf", "CaveatBold");
             });
 
         // Servicios (constitucion, seccion 4: inyeccion de dependencias para todos los servicios)

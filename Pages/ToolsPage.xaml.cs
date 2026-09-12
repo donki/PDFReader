@@ -465,6 +465,7 @@ public partial class ToolsPage : ContentPage
         reader.InitialPassword = password;
         Navigation.InsertPageBefore(reader, this);
         await Navigation.PopAsync();
+        DropOtherReaders(reader);
     }
 
     private IProgress<double> Progress() => new Progress<double>(value => BusyProgress.Progress = value);
@@ -480,4 +481,11 @@ public partial class ToolsPage : ContentPage
 
     private Task AlertAsync(string title, string message) =>
         SocShared.ModernDialog.AlertAsync(this, title, message, _localization["ok"]);
+
+    /// <summary>One reader on the stack at a time: each keeps its page bitmaps, and a chain of them eats the memory.</summary>
+    private void DropOtherReaders(ReaderPage keep)
+    {
+        foreach (var previous in Navigation.NavigationStack.OfType<ReaderPage>().Where(page => !ReferenceEquals(page, keep)).ToList())
+            Navigation.RemovePage(previous);
+    }
 }

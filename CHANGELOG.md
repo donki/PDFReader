@@ -9,6 +9,12 @@ sigue la sección 6 de la constitución: `ApplicationDisplayVersion` legible por
 ## 2026.09.12.0 (202609120)
 
 ### Añadido
+- **Nombre nuevo: PDF Editor.** El paquete sigue siendo `com.socratic.pdfreader`.
+- **Anotar y firmar** (botón de lápiz en el lector): bolígrafo, subrayador, rectángulo, elipse,
+  **tapar** (recuadro blanco para ocultar y reescribir encima), **casillas de texto** (alineación,
+  vertical, cuatro tipografías —Open Sans, Lora, Roboto Mono, Caveat—, tamaño, negrita, color;
+  se mueven, redimensionan y editan) y **firma manuscrita** (se dibuja una vez y se guarda para
+  reutilizar). Se guardan aplanadas en un PDF nuevo; también en páginas giradas.
 - **Windows.** El mismo proyecto compila para Windows (WinUI): mismo lector, misma biblioteca,
   «Abrir con» desde el Explorador. El renderizado usa `Windows.Data.Pdf`, el motor nativo de
   Windows (sin librerías de terceros, como en Android). En una ventana apaisada la página se

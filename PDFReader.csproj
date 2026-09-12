@@ -13,7 +13,7 @@
     <MauiXamlInflator>SourceGen</MauiXamlInflator>
 
     <!-- Display name -->
-    <ApplicationTitle>PDF Reader</ApplicationTitle>
+    <ApplicationTitle>PDF Editor</ApplicationTitle>
 
     <!-- App Identifier (constitucion seccion 4: com.socratic.[nombre-aplicacion]) -->
     <ApplicationId>com.socratic.pdfreader</ApplicationId>
@@ -27,13 +27,13 @@
 
     <!-- Package Information -->
     <PackageId>PDFReader</PackageId>
-    <Title>PDF Reader</Title>
-    <Product>PDF Reader</Product>
+    <Title>PDF Editor</Title>
+    <Product>PDF Editor</Product>
     <Description>Lector y editor de PDF para Android y Windows: sin conexion, sin permisos y con los documentos siempre en el dispositivo</Description>
-    <Copyright>Copyright © 2026 PDF Reader</Copyright>
+    <Copyright>Copyright © 2026 Socratic</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>pdf;reader;viewer;android;maui;dotnet</PackageTags>
-    <Authors>PDF Reader</Authors>
+    <Authors>Socratic</Authors>
     <Company>Socratic</Company>
 
     <!-- Platform versions -->
@@ -82,9 +82,9 @@
     <!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
     <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
 
-    <!-- Las mismas fuentes, tambien como recurso: PDFsharp escribe con ellas (PdfFontResolver). -->
-    <MauiAsset Include="Resources\Fonts\OpenSans-Regular.ttf" LogicalName="fonts/OpenSans-Regular.ttf" />
-    <MauiAsset Include="Resources\Fonts\OpenSans-Semibold.ttf" LogicalName="fonts/OpenSans-Semibold.ttf" />
+    <!-- Las mismas fuentes, tambien como recurso: PDFsharp escribe con ellas (PdfFontResolver).
+         Open Sans (OFL), Lora (OFL, serif), Roboto Mono (Apache 2.0) y Caveat (OFL, manuscrita). -->
+    <MauiAsset Include="Resources\Fonts\*.ttf" LogicalName="fonts/%(Filename)%(Extension)" />
   </ItemGroup>
 
   <ItemGroup>
