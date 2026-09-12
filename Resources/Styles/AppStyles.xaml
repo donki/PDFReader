@@ -3,9 +3,11 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
 
-    <!-- Paleta de la aplicacion. Rojo PDF como color de marca, superficies neutras. -->
-    <Color x:Key="PdfPrimary">#B3121E</Color>
-    <Color x:Key="PdfPrimaryDark">#8A0E17</Color>
+    <!-- Paleta de la aplicacion: el indigo unificado de la constitucion (seccion 24), como el
+         icono y el splash. Aqui quedaba el rojo de la marca anterior y, al fundirse este
+         diccionario el ultimo, pisaba el PrimaryButton indigo de Styles.xaml. -->
+    <Color x:Key="PdfPrimary">#3525CD</Color>
+    <Color x:Key="PdfPrimaryDark">#2A1CB8</Color>
     <Color x:Key="PdfAccent">#E67E22</Color>
     <Color x:Key="PdfLegal">#E74C3C</Color>
 

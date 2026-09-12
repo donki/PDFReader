@@ -102,6 +102,46 @@ public partial class ReaderPage : ContentPage
         Title = entry.DisplayName;
         BusyLabel.Text = _localization["loading_page"];
         _pageIndex = Math.Max(0, entry.LastPageIndex);
+
+        // A window on the desktop gets resized; the page must follow. Debounced, because a drag
+        // fires this for every pixel and each render is a full page rasterisation.
+        Viewport.SizeChanged += (_, _) => ScheduleRefit();
+    }
+
+    private CancellationTokenSource? _refit;
+
+    // The first render must wait for the viewport to have a size: before the first layout pass
+    // the page would be laid out at the display width, which on a desktop window is far too wide.
+    private readonly TaskCompletionSource _firstLayout = new();
+
+    private void ScheduleRefit()
+    {
+        if (Viewport.Width <= 0)
+            return;
+
+        _firstLayout.TrySetResult();
+        if (_document is null)
+            return;
+
+        _refit?.Cancel();
+        var cts = _refit = new CancellationTokenSource();
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await Task.Delay(150, cts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+
+            await MainThread.InvokeOnMainThreadAsync(async () =>
+            {
+                if (!cts.IsCancellationRequested && _document is not null)
+                    await ShowPageAsync(_pageIndex, silent: true);
+            });
+        });
     }
 
     protected override async void OnAppearing()
@@ -132,6 +172,9 @@ public partial class ReaderPage : ContentPage
                 _pageIndex = 0;
 
             SearchButton.IsVisible = _document.SupportsTextSearch;
+
+            if (Viewport.Width <= 0)
+                await Task.WhenAny(_firstLayout.Task, Task.Delay(1000));
         }
         catch (Exception ex)
         {
@@ -222,7 +265,8 @@ public partial class ReaderPage : ContentPage
 
         try
         {
-            var fitWidthDips = GetAvailableWidthDips();
+            var aspectRatio = await GetAspectRatioAsync(pageIndex);
+            var fitWidthDips = GetFitWidthDips(aspectRatio);
             var density = DeviceDisplay.Current.MainDisplayInfo.Density;
             if (density <= 0)
                 density = 1;
@@ -232,7 +276,6 @@ public partial class ReaderPage : ContentPage
             var renderScale = Math.Clamp(_zoom, MinZoom, MaxRenderScale);
             var targetPixels = (int)Math.Round(fitWidthDips * density * renderScale);
 
-            var aspectRatio = await GetAspectRatioAsync(pageIndex);
             var png = await _document.RenderPageAsync(pageIndex, targetPixels, _matches);
 
             // Cross-fade the freshly rendered page in over the current one. The old layer stays
@@ -339,6 +382,21 @@ public partial class ReaderPage : ContentPage
 
         PageContainer.TranslationX = Math.Clamp(PageContainer.TranslationX, -maxX, maxX);
         PageContainer.TranslationY = Math.Clamp(PageContainer.TranslationY, -maxY, maxY);
+    }
+
+    /// <summary>
+    /// Width the page is laid out at when not zoomed. On a phone held upright that is the full
+    /// width; on a wide viewport (a desktop window, a tablet on its side) the whole page fits
+    /// instead, because a fit-to-width portrait page would leave only its middle third visible.
+    /// </summary>
+    private double GetFitWidthDips(double aspectRatio)
+    {
+        var width = GetAvailableWidthDips();
+        if (Viewport.Height <= 0 || aspectRatio <= 0)
+            return width;
+
+        var height = Math.Max(100, Viewport.Height - 16); // minus Viewport padding
+        return Math.Min(width, height / aspectRatio);
     }
 
     private double GetAvailableWidthDips()

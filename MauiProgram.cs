@@ -28,6 +28,8 @@ public static class MauiProgram
 
 #if ANDROID
         builder.Services.AddSingleton<IPdfDocumentService, Platforms.Android.AndroidPdfDocumentService>();
+#elif WINDOWS
+        builder.Services.AddSingleton<IPdfDocumentService, Platforms.Windows.WindowsPdfDocumentService>();
 #endif
 
         // Paginas

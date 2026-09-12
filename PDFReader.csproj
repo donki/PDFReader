@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <TargetFrameworks>net10.0-android36.0</TargetFrameworks>
+    <!-- Windows solo se compila desde Windows: el destino WinUI no existe en otros sistemas. -->
+    <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net10.0-windows10.0.19041.0</TargetFrameworks>
     <OutputType>Exe</OutputType>
     <RootNamespace>PDFReader</RootNamespace>
     <UseMaui>true</UseMaui>
@@ -36,6 +38,8 @@
 
     <!-- Platform versions -->
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">24.0</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
+    <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
 
     <!-- Android specific -->
     <AndroidPackageFormat>apk</AndroidPackageFormat>
@@ -45,6 +49,13 @@
 
     <AssemblyVersion>2026.07.15.0</AssemblyVersion>
     <FileVersion>2026.07.15.0</FileVersion>
+  </PropertyGroup>
+
+  <!-- Windows: sin empaquetar (MSIX) durante el desarrollo; el exe arranca directamente. -->
+  <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
+    <WindowsPackageType>None</WindowsPackageType>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <UseRidGraph>true</UseRidGraph>
   </PropertyGroup>
 
   <!-- Release configuration for Android -->
