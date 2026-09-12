@@ -136,6 +136,7 @@ public partial class AnnotatePage : ContentPage, IDrawable
             var width = (int)Math.Round(Math.Max(300, PageContainer.WidthRequest) * (density > 0 ? density : 1) * 1.5);
             _pagePng = await _document.RenderPageAsync(_pageIndex, width);
             PageImage.Source = ImageSource.FromStream(() => new MemoryStream(_pagePng));
+            _renderedWidth = PageContainer.WidthRequest;
 
             _selected = null;
             Overlay.Invalidate();
@@ -159,7 +160,23 @@ public partial class AnnotatePage : ContentPage, IDrawable
         PageContainer.WidthRequest = width;
         PageContainer.HeightRequest = width * _aspectRatio;
         Overlay.Invalidate();
+
+        // Turning the device (or resizing the window) can double the page on screen: a bitmap
+        // rendered for the old size would look blurry, so render again once things settle.
+        if (_document is not null && _renderedWidth > 0 && Math.Abs(width - _renderedWidth) > _renderedWidth * 0.25)
+        {
+            _rerender?.Cancel();
+            var cts = _rerender = new CancellationTokenSource();
+            _ = Task.Delay(200, cts.Token).ContinueWith(_ => MainThread.BeginInvokeOnMainThread(async () =>
+            {
+                if (!cts.IsCancellationRequested)
+                    await ShowPageAsync();
+            }), TaskContinuationOptions.OnlyOnRanToCompletion);
+        }
     }
+
+    private double _renderedWidth;
+    private CancellationTokenSource? _rerender;
 
     private void UpdatePageLabel()
     {
@@ -540,10 +557,12 @@ public partial class AnnotatePage : ContentPage, IDrawable
 
     private void UpdateTextOptions()
     {
+        // The bar always takes its space (hiding it would resize the page under the user's
+        // finger); it just greys out when no text box is involved.
         var text = _selected as TextAnnotation;
-        TextOptions.IsVisible = _tool == Tool.Text || text is not null;
-        if (!TextOptions.IsVisible)
-            return;
+        var active = _tool == Tool.Text || text is not null;
+        TextOptions.IsEnabled = active;
+        TextOptions.Opacity = active ? 1 : 0.35;
 
         var alignment = text?.Alignment ?? _alignment;
         var rotation = text?.Rotation ?? _rotation;
