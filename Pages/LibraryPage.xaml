@@ -11,7 +11,7 @@
         <Border Grid.Row="0"
                 Style="{StaticResource Card}"
                 Margin="16,16,16,8">
-            <Grid ColumnDefinitions="Auto,*,Auto" Padding="18,16" ColumnSpacing="14">
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto" Padding="18,16" ColumnSpacing="14">
                 <Image Grid.Column="0"
                        Source="app_logo.png"
                        WidthRequest="40"
@@ -28,6 +28,12 @@
                 </VerticalStackLayout>
 
                 <Button Grid.Column="2"
+                        ImageSource="{AppThemeBinding Light=ic_tools.png, Dark=ic_tools_dark.png}"
+                        Style="{StaticResource ReaderToolButton}"
+                        Clicked="OnToolsClicked"
+                        VerticalOptions="Center" />
+
+                <Button Grid.Column="3"
                         ImageSource="{AppThemeBinding Light=ic_info.png, Dark=ic_info_dark.png}"
                         Style="{StaticResource ReaderToolButton}"
                         Clicked="OnAboutClicked"

@@ -81,14 +81,22 @@ public partial class ReaderPage : ContentPage
     /// </summary>
     public string? InitialPassword { get; set; }
 
+    private readonly IFileExportService _export;
+    private readonly IServiceProvider _services;
+    private string? _password;
+
     public ReaderPage(
         PdfDocumentEntry entry,
         ILibraryService library,
         IPdfDocumentService renderer,
         ILocalizationService localization,
+        IFileExportService export,
+        IServiceProvider services,
         ILogger<ReaderPage> logger)
     {
         InitializeComponent();
+        _export = export;
+        _services = services;
 
         _entry = entry;
         _library = library;
@@ -202,7 +210,9 @@ public partial class ReaderPage : ContentPage
         {
             try
             {
-                return await _renderer.OpenAsync(path, password);
+                var document = await _renderer.OpenAsync(path, password);
+                _password = password; // kept for the page organizer, this session only
+                return document;
             }
             catch (PdfOpenException ex) when (ex.Failure is PdfOpenFailure.PasswordProtected or PdfOpenFailure.WrongPassword)
             {
@@ -244,6 +254,29 @@ public partial class ReaderPage : ContentPage
         // The reader never pushes another page, so leaving means the document is no longer needed.
         _document?.Dispose();
         _document = null;
+    }
+
+    /// <summary>Copies the document out of the app (save dialog / document creator).</summary>
+    private async void OnExportClicked(object? sender, EventArgs e)
+    {
+        try
+        {
+            var saved = await _export.SaveAsAsync(_library.GetFilePath(_entry), _entry.DisplayName, "application/pdf");
+            if (saved)
+                await ShowAlertAsync(_localization["done"], _localization["export_done"]);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Could not export {Document}.", _entry.DisplayName);
+            await ShowAlertAsync(_localization["error"], _localization.Format("error_tool", ex.Message));
+        }
+    }
+
+    /// <summary>Opens the page organizer (rotate, reorder, delete, extract) for this document.</summary>
+    private async void OnPagesClicked(object? sender, EventArgs e)
+    {
+        var organizer = ActivatorUtilities.CreateInstance<PageOrganizerPage>(_services, _entry, new PdfInput(_library.GetFilePath(_entry), _password));
+        await Navigation.PushAsync(organizer);
     }
 
     /// <param name="resetView">True when moving to another page, so the pan starts from the top.</param>

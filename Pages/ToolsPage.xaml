@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:pages="clr-namespace:PDFReader.Pages"
+             x:Class="PDFReader.Pages.ToolsPage"
+             Style="{StaticResource AppPage}">
+
+    <Grid RowDefinitions="Auto,*">
+
+        <Border Grid.Row="0" Style="{StaticResource Card}" Margin="16,16,16,8">
+            <Grid ColumnDefinitions="Auto,*" Padding="18,14" ColumnSpacing="14">
+                <Image Grid.Column="0"
+                       Source="{AppThemeBinding Light=ic_tools.png, Dark=ic_tools_dark.png}"
+                       WidthRequest="32" HeightRequest="32" VerticalOptions="Center" />
+                <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                    <Label x:Name="TitleLabel" Style="{StaticResource CardTitle}" FontSize="20" />
+                    <Label x:Name="HintLabel" Style="{StaticResource SecondaryText}" FontSize="12" />
+                </VerticalStackLayout>
+            </Grid>
+        </Border>
+
+        <!-- Una tarjeta por herramienta: icono, nombre y una linea que dice que hace. -->
+        <CollectionView Grid.Row="1"
+                        x:Name="ToolsView"
+                        Margin="16,8"
+                        SelectionMode="None">
+            <CollectionView.ItemsLayout>
+                <LinearItemsLayout Orientation="Vertical" ItemSpacing="10" />
+            </CollectionView.ItemsLayout>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="pages:ToolItem">
+                    <Border Style="{StaticResource Card}">
+                        <Grid ColumnDefinitions="Auto,*,Auto" Padding="14,12" ColumnSpacing="14">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnToolTapped" />
+                            </Grid.GestureRecognizers>
+                            <Image Grid.Column="0" Source="{Binding Icon}" WidthRequest="28" HeightRequest="28" VerticalOptions="Center" />
+                            <VerticalStackLayout Grid.Column="1" Spacing="3" VerticalOptions="Center">
+                                <Label Text="{Binding Title}" Style="{StaticResource BodyText}" FontAttributes="Bold" />
+                                <Label Text="{Binding Subtitle}" Style="{StaticResource SecondaryText}" FontSize="12" />
+                            </VerticalStackLayout>
+                            <Image Grid.Column="2"
+                                   Source="{AppThemeBinding Light=ic_chevron_right.png, Dark=ic_chevron_right_dark.png}"
+                                   WidthRequest="20" HeightRequest="20" VerticalOptions="Center" Opacity="0.6" />
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- Progreso de la herramienta en marcha -->
+        <Grid Grid.Row="0" Grid.RowSpan="2" x:Name="BusyOverlay" IsVisible="False" BackgroundColor="{StaticResource ScrimOverlay}">
+            <VerticalStackLayout VerticalOptions="Center" Spacing="14" Padding="40">
+                <ActivityIndicator IsRunning="True" Color="{StaticResource White}" HorizontalOptions="Center" />
+                <Label x:Name="BusyLabel" TextColor="{StaticResource White}" FontSize="14" HorizontalTextAlignment="Center" />
+                <ProgressBar x:Name="BusyProgress" ProgressColor="{StaticResource White}" />
+            </VerticalStackLayout>
+        </Grid>
+    </Grid>
+</ContentPage>

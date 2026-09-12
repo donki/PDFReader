@@ -6,6 +6,23 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 sigue la sección 6 de la constitución: `ApplicationDisplayVersion` legible por el usuario y
 `ApplicationVersion` entero incremental para Play Store.
 
+## 2026.09.12.0 (202609120)
+
+### Añadido
+- **Windows.** El mismo proyecto compila para Windows (WinUI): mismo lector, misma biblioteca,
+  «Abrir con» desde el Explorador. El renderizado usa `Windows.Data.Pdf`, el motor nativo de
+  Windows (sin librerías de terceros, como en Android). En una ventana apaisada la página se
+  ajusta entera, y sigue a la ventana al redimensionarla.
+- **Herramientas** (botón en la cabecera de la biblioteca): fusionar, dividir por rangos,
+  organizar páginas (girar, reordenar, borrar, extraer, con miniaturas), imágenes a PDF, PDF a
+  imágenes (ZIP), proteger y quitar contraseña, numerar páginas y marca de agua. Cada una crea un
+  documento nuevo en la biblioteca y lo abre; el original no se toca. Escritura con PDFsharp (MIT).
+- **Guardar fuera de la app** y **organizar páginas** desde la barra del lector.
+
+### Corregido
+- El botón principal y los acentos salían con el rojo de la marca anterior: `AppStyles.xaml`
+  pisaba el índigo de la constitución al fundirse el último.
+
 ## 2026.08.28.0 (202608280)
 
 ### Corregido

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:pages="clr-namespace:PDFReader.Pages"
+             x:Class="PDFReader.Pages.DocumentPickerPage"
+             Style="{StaticResource AppPage}">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <!-- Cabecera: que se esta eligiendo y para que -->
+        <Border Grid.Row="0" Style="{StaticResource Card}" Margin="16,16,16,8">
+            <VerticalStackLayout Padding="18,14" Spacing="4">
+                <Label x:Name="TitleLabel" Style="{StaticResource CardTitle}" />
+                <Label x:Name="HintLabel" Style="{StaticResource SecondaryText}" />
+            </VerticalStackLayout>
+        </Border>
+
+        <!-- Documentos de la biblioteca, con marca de seleccion -->
+        <CollectionView Grid.Row="1"
+                        x:Name="DocumentsView"
+                        Margin="16,8"
+                        SelectionMode="None">
+            <CollectionView.ItemsLayout>
+                <LinearItemsLayout Orientation="Vertical" ItemSpacing="10" />
+            </CollectionView.ItemsLayout>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="pages:PickableDocument">
+                    <Border Style="{StaticResource Card}">
+                        <Grid ColumnDefinitions="Auto,*,Auto" Padding="14,12" ColumnSpacing="12">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnDocumentTapped" />
+                            </Grid.GestureRecognizers>
+                            <Image Grid.Column="0"
+                                   Source="{AppThemeBinding Light=ic_document.png, Dark=ic_document_dark.png}"
+                                   WidthRequest="28" HeightRequest="28" VerticalOptions="Center" />
+                            <VerticalStackLayout Grid.Column="1" Spacing="3" VerticalOptions="Center">
+                                <Label Text="{Binding DisplayName}" Style="{StaticResource BodyText}" FontAttributes="Bold"
+                                       LineBreakMode="MiddleTruncation" MaxLines="1" />
+                                <Label Text="{Binding Details}" Style="{StaticResource SecondaryText}" FontSize="12" />
+                            </VerticalStackLayout>
+                            <!-- Orden de seleccion: en «fusionar» es el orden de salida -->
+                            <Border Grid.Column="2"
+                                    IsVisible="{Binding IsSelected}"
+                                    BackgroundColor="{StaticResource PdfPrimary}"
+                                    StrokeThickness="0"
+                                    WidthRequest="30" HeightRequest="30"
+                                    VerticalOptions="Center">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="15" />
+                                </Border.StrokeShape>
+                                <Label Text="{Binding Order}" TextColor="White" FontAttributes="Bold" FontSize="13"
+                                       HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
+                            </Border>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- Acciones: añadir desde archivo, cancelar, aceptar -->
+        <Grid Grid.Row="2" ColumnDefinitions="Auto,*,Auto,Auto" Padding="16,8,16,20" ColumnSpacing="8">
+            <Button Grid.Column="0" x:Name="AddFileButton"
+                    ImageSource="{AppThemeBinding Light=ic_plus.png, Dark=ic_plus_dark.png}"
+                    Style="{StaticResource ReaderToolButton}" Clicked="OnAddFileClicked" />
+            <Button Grid.Column="2" x:Name="CancelButton"
+                    ImageSource="{AppThemeBinding Light=ic_close.png, Dark=ic_close_dark.png}"
+                    Style="{StaticResource ReaderToolButton}" Clicked="OnCancelClicked" />
+            <Button Grid.Column="3" x:Name="AcceptButton"
+                    ImageSource="ic_check_dark.png"
+                    Style="{StaticResource ReaderToolButton}"
+                    BackgroundColor="{StaticResource PdfPrimary}"
+                    Clicked="OnAcceptClicked" />
+        </Grid>
+
+        <Grid Grid.Row="0" Grid.RowSpan="3" x:Name="BusyOverlay" IsVisible="False" BackgroundColor="{StaticResource ScrimOverlay}">
+            <ActivityIndicator IsRunning="True" Color="{StaticResource White}" HorizontalOptions="Center" VerticalOptions="Center" />
+        </Grid>
+    </Grid>
+</ContentPage>

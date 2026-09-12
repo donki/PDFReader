@@ -28,9 +28,15 @@ public static class MauiProgram
 
 #if ANDROID
         builder.Services.AddSingleton<IPdfDocumentService, Platforms.Android.AndroidPdfDocumentService>();
+        builder.Services.AddSingleton<IFileExportService, Platforms.Android.AndroidFileExportService>();
 #elif WINDOWS
         builder.Services.AddSingleton<IPdfDocumentService, Platforms.Windows.WindowsPdfDocumentService>();
+        builder.Services.AddSingleton<IFileExportService, Platforms.Windows.WindowsFileExportService>();
 #endif
+
+        // Herramientas de documento (PDFsharp, MIT): fusionar, dividir, rotar, imagenes, contraseñas…
+        builder.Services.AddSingleton<IPdfToolsService, PdfToolsService>();
+        builder.Services.AddTransient<ToolsPage>();
 
         // Paginas
         builder.Services.AddSingleton<LibraryPage>();

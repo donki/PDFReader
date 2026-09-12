@@ -39,6 +39,26 @@ namespace PDFReader;
     DataPathPatterns = [".*\\\\.pdf", ".*\\\\.PDF"])]
 public class MainActivity : MauiAppCompatActivity
 {
+    // Resultado del selector «crear documento» (guardar como). Solo hay uno en vuelo a la vez.
+    private const int CreateDocumentRequest = 4711;
+    private TaskCompletionSource<AndroidUri?>? _createDocument;
+
+    /// <summary>Lanza <paramref name="intent"/> y devuelve el URI elegido, o nulo si se cancela.</summary>
+    public Task<AndroidUri?> StartForUriResultAsync(Intent intent)
+    {
+        _createDocument?.TrySetResult(null);
+        _createDocument = new TaskCompletionSource<AndroidUri?>(TaskCreationOptions.RunContinuationsAsynchronously);
+        StartActivityForResult(intent, CreateDocumentRequest);
+        return _createDocument.Task;
+    }
+
+    protected override void OnActivityResult(int requestCode, Result resultCode, Intent? data)
+    {
+        base.OnActivityResult(requestCode, resultCode, data);
+        if (requestCode == CreateDocumentRequest)
+            _createDocument?.TrySetResult(resultCode == Result.Ok ? data?.Data : null);
+    }
+
     protected override void OnCreate(Bundle? savedInstanceState)
     {
         base.OnCreate(savedInstanceState);

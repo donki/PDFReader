@@ -19,8 +19,8 @@
     <ApplicationId>com.socratic.pdfreader</ApplicationId>
 
     <!-- Versions (constitucion seccion 6) -->
-    <ApplicationDisplayVersion>2026.08.28.0</ApplicationDisplayVersion>
-    <ApplicationVersion>202608280</ApplicationVersion>
+    <ApplicationDisplayVersion>2026.09.12.0</ApplicationDisplayVersion>
+    <ApplicationVersion>202609120</ApplicationVersion>
 
     <!-- Accept Android SDK Licenses -->
     <AcceptAndroidSDKLicenses>true</AcceptAndroidSDKLicenses>
@@ -29,7 +29,7 @@
     <PackageId>PDFReader</PackageId>
     <Title>PDF Reader</Title>
     <Product>PDF Reader</Product>
-    <Description>Lector de PDF para Android: sin conexion, sin permisos y con los documentos siempre en el dispositivo</Description>
+    <Description>Lector y editor de PDF para Android y Windows: sin conexion, sin permisos y con los documentos siempre en el dispositivo</Description>
     <Copyright>Copyright © 2026 PDF Reader</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>pdf;reader;viewer;android;maui;dotnet</PackageTags>
@@ -81,11 +81,19 @@
 
     <!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
     <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+
+    <!-- Las mismas fuentes, tambien como recurso: PDFsharp escribe con ellas (PdfFontResolver). -->
+    <MauiAsset Include="Resources\Fonts\OpenSans-Regular.ttf" LogicalName="fonts/OpenSans-Regular.ttf" />
+    <MauiAsset Include="Resources\Fonts\OpenSans-Semibold.ttf" LogicalName="fonts/OpenSans-Semibold.ttf" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
+    <!-- Herramientas de documento (fusionar, dividir, rotar, imagenes a PDF, contraseñas, marcas
+         de agua, anotaciones aplanadas): PDFsharp escribe PDF y es MIT (constitucion, seccion 4).
+         El renderizado sigue siendo el nativo de cada plataforma. -->
+    <PackageReference Include="PDFsharp" Version="6.2.4" />
   </ItemGroup>
 
   <!-- Ficheros compartidos por las 7 apps (una sola fuente de verdad). Se perdieron en el
