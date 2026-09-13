@@ -384,9 +384,6 @@ public partial class LibraryPage : ContentPage
         }
     }
 
-    private async void OnToolsClicked(object? sender, EventArgs e) =>
-        await Navigation.PushAsync(_services.GetRequiredService<ToolsPage>());
-
     private async void OnAboutClicked(object? sender, EventArgs e) =>
         await Navigation.PushAsync(_services.GetRequiredService<AboutPage>());
 

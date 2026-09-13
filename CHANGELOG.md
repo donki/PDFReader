@@ -6,28 +6,14 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 sigue la sección 6 de la constitución: `ApplicationDisplayVersion` legible por el usuario y
 `ApplicationVersion` entero incremental para Play Store.
 
-## 2026.09.12.0 (202609120)
+## 2026.09.13.0 (2026091300)
 
-### Añadido
-- **Nombre nuevo: PDF Editor.** El paquete sigue siendo `com.socratic.pdfreader`.
-- **Anotar y firmar** (botón de lápiz en el lector): bolígrafo, subrayador, rectángulo, elipse,
-  **tapar** (recuadro blanco para ocultar y reescribir encima), **casillas de texto** (alineación,
-  vertical, cuatro tipografías —Open Sans, Lora, Roboto Mono, Caveat—, tamaño, negrita, color;
-  se mueven, redimensionan y editan) y **firma manuscrita** (se dibuja una vez y se guarda para
-  reutilizar). Se guardan aplanadas en un PDF nuevo; también en páginas giradas.
-- **Windows.** El mismo proyecto compila para Windows (WinUI): mismo lector, misma biblioteca,
-  «Abrir con» desde el Explorador. El renderizado usa `Windows.Data.Pdf`, el motor nativo de
-  Windows (sin librerías de terceros, como en Android). En una ventana apaisada la página se
-  ajusta entera, y sigue a la ventana al redimensionarla.
-- **Herramientas** (botón en la cabecera de la biblioteca): fusionar, dividir por rangos,
-  organizar páginas (girar, reordenar, borrar, extraer, con miniaturas), imágenes a PDF, PDF a
-  imágenes (ZIP), proteger y quitar contraseña, numerar páginas y marca de agua. Cada una crea un
-  documento nuevo en la biblioteca y lo abre; el original no se toca. Escritura con PDFsharp (MIT).
-- **Guardar fuera de la app** y **organizar páginas** desde la barra del lector.
-
-### Corregido
-- El botón principal y los acentos salían con el rojo de la marca anterior: `AppStyles.xaml`
-  pisaba el índigo de la constitución al fundirse el último.
+### Eliminado
+- **Las herramientas de edición del 12-09** (fusionar, dividir, organizar páginas, imágenes,
+  contraseñas, numeración, marca de agua, anotar, firmar y exportar) y el nombre «PDF Editor».
+  Decisión del autor: la aplicación vuelve a ser solo un lector, tal como estaba antes de
+  añadirlas. Se retiran también PDFsharp y las tipografías que traían, y la ficha de Microsoft
+  Store que las describía. Se conserva el destino Windows (WinUI) con su renderizador nativo.
 
 ## 2026.08.28.0 (202608280)
 

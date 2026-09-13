@@ -10,7 +10,7 @@
   <mp:PhoneIdentity xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" PhoneProductId="1A0EB10D-2A2F-4E3B-9C6A-3D6C1F7E2B41" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
-    <DisplayName>PDF Editor</DisplayName>
+    <DisplayName>PDF Reader</DisplayName>
     <PublisherDisplayName>Socratic</PublisherDisplayName>
     <Logo>$placeholder$.png</Logo>
   </Properties>
@@ -27,7 +27,7 @@
   <Applications>
     <Application Id="App" Executable="$targetnametoken$.exe" EntryPoint="$targetentrypoint$">
       <uap:VisualElements
-        DisplayName="PDF Editor"
+        DisplayName="PDF Reader"
         Description="Lector y editor de PDF: sin conexion y con los documentos siempre en el equipo"
         Square150x150Logo="$placeholder$.png"
         Square44x44Logo="$placeholder$.png"

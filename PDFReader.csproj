@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>net10.0-android36.0</TargetFrameworks>
@@ -13,27 +13,27 @@
     <MauiXamlInflator>SourceGen</MauiXamlInflator>
 
     <!-- Display name -->
-    <ApplicationTitle>PDF Editor</ApplicationTitle>
+    <ApplicationTitle>PDF Reader</ApplicationTitle>
 
     <!-- App Identifier (constitucion seccion 4: com.socratic.[nombre-aplicacion]) -->
     <ApplicationId>com.socratic.pdfreader</ApplicationId>
 
     <!-- Versions (constitucion seccion 6) -->
-    <ApplicationDisplayVersion>2026.09.12.1</ApplicationDisplayVersion>
-    <ApplicationVersion>2026091201</ApplicationVersion>
+    <ApplicationDisplayVersion>2026.09.13.0</ApplicationDisplayVersion>
+    <ApplicationVersion>2026091300</ApplicationVersion>
 
     <!-- Accept Android SDK Licenses -->
     <AcceptAndroidSDKLicenses>true</AcceptAndroidSDKLicenses>
 
     <!-- Package Information -->
     <PackageId>PDFReader</PackageId>
-    <Title>PDF Editor</Title>
-    <Product>PDF Editor</Product>
-    <Description>Lector y editor de PDF para Android y Windows: sin conexion, sin permisos y con los documentos siempre en el dispositivo</Description>
-    <Copyright>Copyright © 2026 Socratic</Copyright>
+    <Title>PDF Reader</Title>
+    <Product>PDF Reader</Product>
+    <Description>Lector de PDF para Android: sin conexion, sin permisos y con los documentos siempre en el dispositivo</Description>
+    <Copyright>Copyright © 2026 PDF Reader</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>pdf;reader;viewer;android;maui;dotnet</PackageTags>
-    <Authors>Socratic</Authors>
+    <Authors>PDF Reader</Authors>
     <Company>Socratic</Company>
 
     <!-- Platform versions -->
@@ -81,19 +81,11 @@
 
     <!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
     <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
-
-    <!-- Las mismas fuentes, tambien como recurso: PDFsharp escribe con ellas (PdfFontResolver).
-         Open Sans (OFL), Lora (OFL, serif), Roboto Mono (Apache 2.0) y Caveat (OFL, manuscrita). -->
-    <MauiAsset Include="Resources\Fonts\*.ttf" LogicalName="fonts/%(Filename)%(Extension)" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
-    <!-- Herramientas de documento (fusionar, dividir, rotar, imagenes a PDF, contraseñas, marcas
-         de agua, anotaciones aplanadas): PDFsharp escribe PDF y es MIT (constitucion, seccion 4).
-         El renderizado sigue siendo el nativo de cada plataforma. -->
-    <PackageReference Include="PDFsharp" Version="6.2.4" />
   </ItemGroup>
 
   <!-- Ficheros compartidos por las 7 apps (una sola fuente de verdad). Se perdieron en el

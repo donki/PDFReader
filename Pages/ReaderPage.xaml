@@ -100,7 +100,7 @@
         <Border Grid.Row="2"
                 Style="{StaticResource Card}"
                 Margin="8,4,8,8">
-            <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto,Auto,Auto,Auto"
+            <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto"
                   Padding="6,4"
                   ColumnSpacing="2">
 
@@ -144,24 +144,6 @@
                         ImageSource="{AppThemeBinding Light=ic_search.png, Dark=ic_search_dark.png}"
                         Style="{StaticResource ReaderToolButton}"
                         Clicked="OnSearchClicked" />
-
-                <Button Grid.Column="6"
-                        x:Name="AnnotateButton"
-                        ImageSource="{AppThemeBinding Light=ic_annotate.png, Dark=ic_annotate_dark.png}"
-                        Style="{StaticResource ReaderToolButton}"
-                        Clicked="OnAnnotateClicked" />
-
-                <Button Grid.Column="7"
-                        x:Name="PagesButton"
-                        ImageSource="{AppThemeBinding Light=ic_pages.png, Dark=ic_pages_dark.png}"
-                        Style="{StaticResource ReaderToolButton}"
-                        Clicked="OnPagesClicked" />
-
-                <Button Grid.Column="8"
-                        x:Name="ExportButton"
-                        ImageSource="{AppThemeBinding Light=ic_share.png, Dark=ic_share_dark.png}"
-                        Style="{StaticResource ReaderToolButton}"
-                        Clicked="OnExportClicked" />
             </Grid>
         </Border>
 

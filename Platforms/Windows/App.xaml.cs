@@ -11,20 +11,6 @@ public partial class App : MauiWinUIApplication
     public App()
     {
         InitializeComponent();
-
-        // Un fallo no capturado en WinUI muere como 0xc000027b sin decir que paso; aqui queda escrito.
-        UnhandledException += (_, e) =>
-        {
-            try
-            {
-                var path = Path.Combine(FileSystem.CacheDirectory, "crash.txt");
-                File.AppendAllText(path, $"{DateTime.Now:O} {e.Message}{Environment.NewLine}{e.Exception}{Environment.NewLine}{Environment.NewLine}");
-            }
-            catch
-            {
-                // Nada mas que hacer.
-            }
-        };
     }
 
     protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();
