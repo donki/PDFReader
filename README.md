@@ -3,6 +3,11 @@
 Lector de PDF para Android desarrollado en .NET MAUI. Sin conexión, **sin ningún permiso** y con los
 documentos siempre en el dispositivo.
 
+## Dónde conseguirla
+
+- **Google Play:** https://play.google.com/store/apps/details?id=com.socratic.pdfreader
+- **Releases de GitHub** (APK / EXE / MSIX de cada versión): https://github.com/donki/PDFReader/releases
+
 ## ✨ Características
 
 ### 📖 Lectura
