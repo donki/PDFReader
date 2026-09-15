@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>net10.0-android36.0</TargetFrameworks>
@@ -19,8 +19,8 @@
     <ApplicationId>com.socratic.pdfreader</ApplicationId>
 
     <!-- Versions (constitucion seccion 6) -->
-    <ApplicationDisplayVersion>2026.09.14.0</ApplicationDisplayVersion>
-    <ApplicationVersion>2026091400</ApplicationVersion>
+    <ApplicationDisplayVersion>2026.09.15.0</ApplicationDisplayVersion>
+    <ApplicationVersion>2026091500</ApplicationVersion>
 
     <!-- Accept Android SDK Licenses -->
     <AcceptAndroidSDKLicenses>true</AcceptAndroidSDKLicenses>
@@ -59,6 +59,12 @@
   </PropertyGroup>
 
   <!-- Release configuration for Android -->
+  <!-- Los ensamblados van dentro del APK tambien en Debug: sin esto el APK instalado por USB
+       arranca con «Fast Deployment» y aborta si no encuentra los ficheros (SIGABRT en monodroid). -->
+  <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
+    <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(Configuration)' == 'Release' and $([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
     <AndroidKeyStore>false</AndroidKeyStore>
     <RunAOTCompilation>false</RunAOTCompilation>
