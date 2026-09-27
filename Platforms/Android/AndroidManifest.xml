@@ -9,7 +9,9 @@
 		sube documentos ni datos del usuario a la red.
 	-->
 	<uses-permission android:name="android.permission.INTERNET" />
-	<application android:allowBackup="true" android:icon="@mipmap/appicon" android:roundIcon="@mipmap/appicon_round" android:supportsRtl="true"></application>
+	<!-- enableOnBackInvokedCallback="false": con targetSdk 36, Android 16 activa el "atras
+	     predictivo" y el boton de atras no llega a las paginas (Mobile 7). -->
+	<application android:enableOnBackInvokedCallback="false" android:allowBackup="true" android:icon="@mipmap/appicon" android:roundIcon="@mipmap/appicon_round" android:supportsRtl="true"></application>
 	<queries>
 		<!-- Permite resolver la aplicacion de correo desde la pantalla Acerca de. -->
 		<intent>

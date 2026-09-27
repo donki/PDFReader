@@ -6,6 +6,19 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 sigue la sección 6 de la constitución: `ApplicationDisplayVersion` legible por el usuario y
 `ApplicationVersion` entero incremental para Play Store.
 
+## 2026.09.27.0 (2026092700)
+
+### Añadido
+- **Un error inesperado ya no cierra la aplicación** (constitución General §6.12): se registra con
+  su traza en `crash.log` (carpeta de datos de la app, con tamaño acotado), se avisa en el idioma
+  elegido en la aplicación y se sigue. Usa la pieza común `Shared/CrashGuard.cs`.
+
+### Corregido
+- **Botón de atrás** (Mobile §7): en Android 16 el «atrás predictivo» hacía que no llegase a las
+  páginas (`enableOnBackInvokedCallback="false"`). Ahora, en el lector, con el buscador abierto
+  primero lo cierra y si no vuelve a la biblioteca; en la biblioteca la aplicación se oculta sin
+  cerrarse. La página de contraseña sigue cancelando con atrás.
+
 ## 2026.09.13.0 (2026091300)
 
 ### Eliminado

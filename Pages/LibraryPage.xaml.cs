@@ -384,6 +384,20 @@ public partial class LibraryPage : ContentPage
         }
     }
 
+    /// <summary>
+    /// Atras en la biblioteca, que es la pantalla de inicio (Mobile 7): la aplicacion se oculta sin
+    /// cerrarse y al volver sigue donde estaba.
+    /// </summary>
+    protected override bool OnBackButtonPressed()
+    {
+#if ANDROID
+        Platform.CurrentActivity?.MoveTaskToBack(true);
+        return true;
+#else
+        return base.OnBackButtonPressed();
+#endif
+    }
+
     private async void OnAboutClicked(object? sender, EventArgs e) =>
         await Navigation.PushAsync(_services.GetRequiredService<AboutPage>());
 

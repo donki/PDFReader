@@ -612,6 +612,20 @@ public partial class ReaderPage : ContentPage
         await ShowPageAsync(page - 1, resetView: true);
     }
 
+    /// <summary>
+    /// Atras en el lector (Mobile 7): con el buscador abierto, primero lo cierra; si no, vuelve a la
+    /// biblioteca (lo desapila la NavigationPage).
+    /// </summary>
+    protected override bool OnBackButtonPressed()
+    {
+        if (SearchBar.IsVisible)
+        {
+            OnCloseSearchClicked(this, EventArgs.Empty);
+            return true;
+        }
+        return base.OnBackButtonPressed();
+    }
+
     private void OnSearchClicked(object? sender, EventArgs e)
     {
         SearchBar.IsVisible = true;

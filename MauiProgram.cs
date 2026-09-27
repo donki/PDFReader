@@ -8,6 +8,12 @@ public static class MauiProgram
 {
     public static MauiApp CreateMauiApp()
     {
+        // Gestor global de excepciones (constitucion General 6.12): lo primero, antes de crear nada.
+        // Registra en AppDataDirectory/crash.log y avisa sin cerrar la app, en el idioma elegido en
+        // la app (que no toca CurrentUICulture, por eso se le pasa).
+        SocShared.CrashGuard.Install("PDF Reader", language: () =>
+            IPlatformApplication.Current?.Services.GetService<ILocalizationService>()?.CurrentLanguage);
+
         var builder = MauiApp.CreateBuilder();
         builder
             .UseMauiApp<App>()
