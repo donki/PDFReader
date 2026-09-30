@@ -6,6 +6,28 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 sigue la sección 6 de la constitución: `ApplicationDisplayVersion` legible por el usuario y
 `ApplicationVersion` entero incremental para Play Store.
 
+## 2026.09.30.0 (2026093000)
+
+### Corregido
+- **Páginas muy alargadas** (un tique, un rollo escaneado): el tope de 12 Mpx del mapa de bits no se
+  respetaba cuando el ancho ya estaba en su mínimo de 200 px, y una página así podía pedir cientos de
+  megas de memoria y cerrar la app. Ahora se recorta el alto para no pasar del tope.
+
+### Cambiado
+- La geometría de página (`Services/PdfPageMath.cs`) y los textos de la lista de la biblioteca
+  (`Services/LibraryFormatter.cs`) salen de la plataforma Android y de la página a clases propias,
+  sin cambiar lo que muestran, para poder probarlos.
+
+### Añadido
+- **Pruebas automatizadas** (General §8.6): proyecto `PDFReader.Tests` (xUnit) con la biblioteca
+  (importar, recientes, página y número de páginas, borrar, índice dañado o incompleto, importaciones
+  a la vez), idiomas, geometría de página, resaltado de la búsqueda y textos de la lista. Se ejecutan
+  con `dotnet test PDFReader.Tests`.
+
+### English
+- Very tall pages no longer ask for an oversized bitmap that could run the app out of memory.
+- Automated tests for the app logic (`dotnet test PDFReader.Tests`).
+
 ## 2026.09.27.0 (2026092700)
 
 ### Añadido

@@ -1,0 +1,50 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Pruebas de la logica de PDF Reader (constitucion General 8.6). La app es un proyecto MAUI de
+       un solo proyecto: aqui se enlazan sus ficheros puros (biblioteca, idiomas, geometria de pagina,
+       textos de la lista) y se compilan para net10.0, sin interfaz ni dispositivo. Lo poco de MAUI
+       que tocan (FileSystem.AppDataDirectory y Preferences) lo sustituyen dobles de Stubs/.
+       El renderizado y la busqueda de texto usan PdfRenderer de Android: no se prueban aqui. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <RootNamespace>PDFReader.Tests</RootNamespace>
+    <RunSettingsFilePath>$(MSBuildThisFileDirectory)coverlet.runsettings</RunSettingsFilePath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- xunit y su runner (Apache-2.0), Microsoft.NET.Test.Sdk y coverlet (MIT): solo para probar, no se distribuyen. -->
+    <PackageReference Include="coverlet.collector" Version="6.0.4">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <!-- Codigo de la app que se prueba (enlazado, no copiado). -->
+  <ItemGroup>
+    <Compile Include="..\Models\*.cs" Link="App\Models\%(Filename)%(Extension)" />
+    <Compile Include="..\Services\IPdfDocumentService.cs" Link="App\Services\IPdfDocumentService.cs" />
+    <Compile Include="..\Services\ILibraryService.cs" Link="App\Services\ILibraryService.cs" />
+    <Compile Include="..\Services\LibraryService.cs" Link="App\Services\LibraryService.cs" />
+    <Compile Include="..\Services\PendingDocumentQueue.cs" Link="App\Services\PendingDocumentQueue.cs" />
+    <Compile Include="..\Services\ILocalizationService.cs" Link="App\Services\ILocalizationService.cs" />
+    <Compile Include="..\Services\LocalizationService.cs" Link="App\Services\LocalizationService.cs" />
+    <Compile Include="..\Services\PdfPageMath.cs" Link="App\Services\PdfPageMath.cs" />
+    <Compile Include="..\Services\LibraryFormatter.cs" Link="App\Services\LibraryFormatter.cs" />
+  </ItemGroup>
+
+</Project>

@@ -99,11 +99,6 @@ public class AndroidPdfDocumentService : IPdfDocumentService
         private readonly ParcelFileDescriptor _descriptor;
         private bool _disposed;
 
-        // Guards against OutOfMemory on very large pages: an ARGB_8888 bitmap costs 4 bytes per pixel.
-        private const int MinWidthPixels = 200;
-        private const int MaxWidthPixels = 3000;
-        private const long MaxPixels = 12_000_000;
-
         // A search that matched tens of thousands of times would stall the reader for no benefit:
         // nobody steps through that many hits, and every page has to be opened to find them.
         private const int MaxMatches = 500;
@@ -131,7 +126,7 @@ public class AndroidPdfDocumentService : IPdfDocumentService
                 var page = OpenPage(pageIndex);
                 try
                 {
-                    return page.Width > 0 ? (double)page.Height / page.Width : 1.414; // A4 portrait
+                    return PdfPageMath.AspectRatio(page.Width, page.Height);
                 }
                 finally
                 {
@@ -160,7 +155,7 @@ public class AndroidPdfDocumentService : IPdfDocumentService
                 Bitmap? bitmap = null;
                 try
                 {
-                    var (width, height) = ScalePage(page.Width, page.Height, targetWidthPixels);
+                    var (width, height) = PdfPageMath.ScalePage(page.Width, page.Height, targetWidthPixels);
 
                     bitmap = Bitmap.CreateBitmap(width, height, Bitmap.Config.Argb8888!)
                         ?? throw new InvalidOperationException($"Could not allocate a {width}x{height} bitmap.");
@@ -264,23 +259,14 @@ public class AndroidPdfDocumentService : IPdfDocumentService
                 if (bounds is null || bounds.Count == 0)
                     continue;
 
-                float left = float.MaxValue, top = float.MaxValue;
-                float right = float.MinValue, bottom = float.MinValue;
-
-                foreach (var rect in bounds)
-                {
-                    left = Math.Min(left, rect.Left);
-                    top = Math.Min(top, rect.Top);
-                    right = Math.Max(right, rect.Right);
-                    bottom = Math.Max(bottom, rect.Bottom);
-                }
-
-                matches.Add(new PdfTextMatch(
+                var normalized = PdfPageMath.NormalizeMatch(
                     pageIndex,
-                    left / pageWidth,
-                    top / pageHeight,
-                    right / pageWidth,
-                    bottom / pageHeight));
+                    bounds.Select(r => (r.Left, r.Top, r.Right, r.Bottom)),
+                    pageWidth,
+                    pageHeight);
+
+                if (normalized is not null)
+                    matches.Add(normalized);
 
                 if (matches.Count >= MaxMatches)
                     return;
@@ -320,22 +306,6 @@ public class AndroidPdfDocumentService : IPdfDocumentService
                     (float)(match.Bottom * bitmap.Height),
                     paint);
             }
-        }
-
-        private static (int Width, int Height) ScalePage(int pageWidth, int pageHeight, int targetWidthPixels)
-        {
-            var width = Math.Clamp(targetWidthPixels, MinWidthPixels, MaxWidthPixels);
-            var aspect = pageWidth > 0 ? (double)pageHeight / pageWidth : 1.414;
-            var height = Math.Max(1, (int)Math.Round(width * aspect));
-
-            if ((long)width * height > MaxPixels)
-            {
-                var factor = Math.Sqrt((double)MaxPixels / ((long)width * height));
-                width = Math.Max(MinWidthPixels, (int)(width * factor));
-                height = Math.Max(1, (int)(height * factor));
-            }
-
-            return (width, height);
         }
 
         private void ValidatePageIndex(int pageIndex)

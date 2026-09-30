@@ -35,3 +35,6 @@ Desktop.ini
 $RECYCLE.BIN/
 .DS_Store
 releases/
+
+# Pruebas
+TestResults/

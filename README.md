@@ -40,6 +40,26 @@ licencia ajenas y puede distribuirse bajo MIT sin restricciones.
 Cada página se rasteriza bajo demanda al ancho que ocupa en pantalla y al nivel de zoom actual,
 por lo que la memoria no crece con la longitud del documento.
 
+## 🧪 Pruebas
+
+69 pruebas automatizadas (xUnit) de la lógica de la app, sin interfaz ni dispositivo: biblioteca
+sobre una carpeta temporal (importar, recientes, última página, número de páginas, borrar, índice
+dañado o con ficheros perdidos, importaciones a la vez), idiomas (mismas claves y marcadores en
+castellano e inglés, idioma del sistema y guardado), geometría de página (tamaño del mapa de bits y
+sus topes), cajas de resaltado de la búsqueda, textos de la lista y cola de documentos recibidos.
+
+| Fecha | Pruebas | Cobertura de lo instrumentado | Cobertura sobre toda la app | Tiempo del banco |
+|---|---|---|---|---|
+| 2026-09-30 | 69 (todas pasan) | 98,8 % (335 / 339 líneas) | 15,0 % (335 / 2239 líneas) | ~1 s de pruebas, ~12 s con el arranque de `dotnet test` |
+
+```bash
+dotnet test PDFReader.Tests                        # solo las pruebas
+pwsh PDFReader.Tests/cobertura.ps1                 # pruebas + las dos coberturas + tiempo
+```
+
+Queda sin probar la interfaz (lector, zoom y gestos, contraseña, Acerca de) y el renderizado y la
+búsqueda de texto, que usan `PdfRenderer` de Android (y `Windows.Data.Pdf` en Windows).
+
 ## 🚀 Instalación
 
 ### Requisitos

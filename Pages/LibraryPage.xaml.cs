@@ -109,46 +109,8 @@ public partial class LibraryPage : ContentPage
     private DocumentListItem ToListItem(PdfDocumentEntry entry) => new(
         entry,
         entry.DisplayName,
-        FormatDetails(entry),
-        FormatLastOpened(entry.LastOpenedUtc));
-
-    private string FormatDetails(PdfDocumentEntry entry)
-    {
-        var size = FormatSize(entry.SizeBytes);
-
-        if (entry.PageCount <= 0)
-            return size;
-
-        var pages = entry.PageCount == 1
-            ? _localization["page_count_one"]
-            : _localization.Format("page_count", entry.PageCount);
-
-        return $"{pages} · {size}";
-    }
-
-    private static string FormatSize(long bytes)
-    {
-        const long megabyte = 1024 * 1024;
-
-        if (bytes >= megabyte)
-            return string.Format(CultureInfo.CurrentCulture, "{0:0.0} MB", (double)bytes / megabyte);
-
-        return string.Format(CultureInfo.CurrentCulture, "{0:0} KB", Math.Max(1, bytes / 1024d));
-    }
-
-    private string FormatLastOpened(DateTime lastOpenedUtc)
-    {
-        var local = lastOpenedUtc.ToLocalTime();
-        var today = DateTime.Now.Date;
-
-        if (local.Date == today)
-            return $"{_localization["last_opened_today"]} {local:t}";
-
-        if (local.Date == today.AddDays(-1))
-            return $"{_localization["last_opened_yesterday"]} {local:t}";
-
-        return local.ToString("d", CultureInfo.CurrentCulture);
-    }
+        LibraryFormatter.Details(entry, _localization),
+        LibraryFormatter.LastOpened(entry.LastOpenedUtc, DateTime.Now, _localization));
 
     private async void OnOpenPdfClicked(object? sender, EventArgs e)
     {

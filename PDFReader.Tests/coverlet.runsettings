@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- El codigo de la app se compila dentro del ensamblado de pruebas (ficheros enlazados): hay que
+     instrumentarlo (IncludeTestAssembly) y dejar fuera los ficheros propios de las pruebas. -->
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat code coverage">
+        <Configuration>
+          <Format>cobertura</Format>
+          <IncludeTestAssembly>true</IncludeTestAssembly>
+          <ExcludeByFile>**/*.Tests/**/*.cs,**/Microsoft.NET.Test.Sdk.Program.cs</ExcludeByFile>
+          <ExcludeByAttribute>GeneratedCodeAttribute,CompilerGeneratedAttribute</ExcludeByAttribute>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>
