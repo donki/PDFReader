@@ -42,23 +42,32 @@ por lo que la memoria no crece con la longitud del documento.
 
 ## 🧪 Pruebas
 
-69 pruebas automatizadas (xUnit) de la lógica de la app, sin interfaz ni dispositivo: biblioteca
-sobre una carpeta temporal (importar, recientes, última página, número de páginas, borrar, índice
-dañado o con ficheros perdidos, importaciones a la vez), idiomas (mismas claves y marcadores en
-castellano e inglés, idioma del sistema y guardado), geometría de página (tamaño del mapa de bits y
-sus topes), cajas de resaltado de la búsqueda, textos de la lista y cola de documentos recibidos.
+151 pruebas automatizadas (xUnit), sin dispositivo ni red. Además de la lógica (biblioteca sobre una
+carpeta temporal, idiomas, geometría de página, cajas de resaltado, textos de la lista, cola y copia
+de los PDF que llegan de otras apps, reglas comunes de los documentos de `PdfDocumentBase`,
+comprobación de versión), recorren las pantallas con su XAML real compilado para `net10.0` con
+Microsoft.Maui.Controls: biblioteca (abrir, importar, contraseña, PDF no válidos, borrar, documentos
+recibidos, atrás), lector (página guardada, pasar página, zoom, pellizco, arrastre, ir a página,
+búsqueda, errores, cambio de tamaño), contraseña y Acerca de. Lo que pediría el dispositivo pasa por
+`Services/AppPlatform.cs` y el renderizado nativo lo sustituye un documento de mentira.
 
 | Fecha | Pruebas | Cobertura de lo instrumentado | Cobertura sobre toda la app | Tiempo del banco |
 |---|---|---|---|---|
-| 2026-09-30 | 69 (todas pasan) | 98,8 % (335 / 339 líneas) | 15,0 % (335 / 2239 líneas) | ~1 s de pruebas, ~12 s con el arranque de `dotnet test` |
+| 2026-10-02 | 151 (todas pasan) | 96,9 % (1410 / 1455 líneas) | **84,1 %** (1410 / 1676 líneas) | ~15 s de pruebas (el lector espera sus retardos reales) |
+| 2026-09-30 | 69 (todas pasan) | 98,8 % (335 / 339 líneas) | 15,0 % (335 / 2239 líneas, recuento anterior) | ~1 s de pruebas |
 
 ```bash
 dotnet test PDFReader.Tests                        # solo las pruebas
 pwsh PDFReader.Tests/cobertura.ps1                 # pruebas + las dos coberturas + tiempo
 ```
 
-Queda sin probar la interfaz (lector, zoom y gestos, contraseña, Acerca de) y el renderizado y la
-búsqueda de texto, que usan `PdfRenderer` de Android (y `Windows.Data.Pdf` en Windows).
+Cómo se cuenta «toda la app» (desde el 2026-10-01): de cada fichero C# que el banco compila, sus
+líneas ejecutables según coverlet; de los que no (`Platforms/`), todas sus líneas de código como no
+cubiertas (sin llaves, `using`, firmas ni atributos, que no se ejecutan). Queda sin cubrir el código
+nativo: `AndroidPdfDocumentService` (101 líneas: `PdfRenderer`, mapas de bits, búsqueda de Android
+15), `MainActivity` (60: barras del sistema, intents, selector de correo),
+`WindowsPdfDocumentService` y la `App` de Windows (54), y algunos `catch` de las pantallas. No
+llega al 90 % de la constitución (General §8.6); el plan está en el fichero de tareas de la app.
 
 ## 🚀 Instalación
 

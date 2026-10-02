@@ -82,7 +82,7 @@ public partial class LibraryPage : ContentPage
     }
 
     private void OnDocumentQueued(object? sender, EventArgs e) =>
-        MainThread.BeginInvokeOnMainThread(async () => await ImportPendingDocumentsAsync());
+        AppPlatform.BeginInvokeOnMainThread(async () => await ImportPendingDocumentsAsync());
 
     private async Task RefreshAsync()
     {
@@ -116,16 +116,16 @@ public partial class LibraryPage : ContentPage
     {
         try
         {
-            var result = await FilePicker.Default.PickAsync(new PickOptions
+            var result = await AppPlatform.FilePicker.PickAsync(new PickOptions
             {
                 PickerTitle = _localization["open_pdf"],
-                FileTypes = FilePickerFileType.Pdf
+                FileTypes = AppPlatform.PdfFileType()
             });
 
             if (result is null)
                 return; // The user dismissed the picker.
 
-            await using var stream = await result.OpenReadAsync();
+            await using var stream = await AppPlatform.OpenPickedFile(result);
             await ImportAndOpenAsync(stream, result.FileName);
         }
         catch (Exception ex)
@@ -323,7 +323,7 @@ public partial class LibraryPage : ContentPage
         if (sender is not BindableObject { BindingContext: DocumentListItem item })
             return;
 
-        var confirmed = await SocShared.ModernDialog.AlertAsync(
+        var confirmed = await AppPlatform.Alert(
             this,
             _localization["remove_title"],
             _localization.Format("remove_message", item.DisplayName),
@@ -352,12 +352,7 @@ public partial class LibraryPage : ContentPage
     /// </summary>
     protected override bool OnBackButtonPressed()
     {
-#if ANDROID
-        Platform.CurrentActivity?.MoveTaskToBack(true);
-        return true;
-#else
-        return base.OnBackButtonPressed();
-#endif
+        return AppPlatform.MoveTaskToBack() || base.OnBackButtonPressed();
     }
 
     private async void OnAboutClicked(object? sender, EventArgs e) =>
@@ -371,5 +366,5 @@ public partial class LibraryPage : ContentPage
     }
 
     private Task ShowAlertAsync(string title, string message) =>
-        SocShared.ModernDialog.AlertAsync(this, title, message, _localization["ok"]);
+        AppPlatform.Alert(this, title, message, _localization["ok"], null);
 }

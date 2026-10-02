@@ -136,7 +136,7 @@ public partial class ReaderPage : ContentPage
                 return;
             }
 
-            await MainThread.InvokeOnMainThreadAsync(async () =>
+            await AppPlatform.RunOnMainThreadAsync(async () =>
             {
                 if (!cts.IsCancellationRequested && _document is not null)
                     await ShowPageAsync(_pageIndex, silent: true);
@@ -267,7 +267,7 @@ public partial class ReaderPage : ContentPage
         {
             var aspectRatio = await GetAspectRatioAsync(pageIndex);
             var fitWidthDips = GetFitWidthDips(aspectRatio);
-            var density = DeviceDisplay.Current.MainDisplayInfo.Density;
+            var density = AppPlatform.DeviceDisplay.MainDisplayInfo.Density;
             if (density <= 0)
                 density = 1;
 
@@ -294,7 +294,7 @@ public partial class ReaderPage : ContentPage
             // layer is untouched underneath the whole time. Retardos reducidos para que el cambio
             // de página se sienta más ágil (antes 120+90 ms ≈ 210 ms de animación por página).
             await Task.Delay(45);
-            await _backLayer.FadeToAsync(1, 60, Easing.CubicOut);
+            await AppPlatform.FadeInAsync(_backLayer);
 
             _frontLayer.IsVisible = false;
             _frontLayer.Opacity = 1; // restore for its next turn as the back layer
@@ -346,7 +346,7 @@ public partial class ReaderPage : ContentPage
         }
 
         if (!token.IsCancellationRequested)
-            MainThread.BeginInvokeOnMainThread(() => SetBusy(true));
+            AppPlatform.BeginInvokeOnMainThread(() => SetBusy(true));
     }
 
     private async Task<double> GetAspectRatioAsync(int pageIndex)
@@ -405,8 +405,9 @@ public partial class ReaderPage : ContentPage
         if (Viewport.Width > 0)
             return Math.Max(100, Viewport.Width - 16); // minus Viewport padding
 
-        var displayWidth = DeviceDisplay.Current.MainDisplayInfo.Width;
-        var density = DeviceDisplay.Current.MainDisplayInfo.Density;
+        var display = AppPlatform.DeviceDisplay.MainDisplayInfo;
+        var displayWidth = display.Width;
+        var density = display.Density;
 
         return displayWidth > 0 && density > 0 ? displayWidth / density : FallbackWidthDips;
     }
@@ -588,7 +589,7 @@ public partial class ReaderPage : ContentPage
 
         var pageCount = _document.PageCount;
 
-        var answer = await SocShared.ModernDialog.PromptAsync(
+        var answer = await AppPlatform.Prompt(
             this,
             _localization["goto_title"],
             _localization.Format("goto_message", pageCount),
@@ -756,5 +757,5 @@ public partial class ReaderPage : ContentPage
     }
 
     private Task ShowAlertAsync(string title, string message) =>
-        SocShared.ModernDialog.AlertAsync(this, title, message, _localization["ok"]);
+        AppPlatform.Alert(this, title, message, _localization["ok"], null);
 }

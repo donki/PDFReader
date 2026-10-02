@@ -24,6 +24,14 @@ public class PdfOpenException(PdfOpenFailure failure, string message, Exception?
     : Exception(message, innerException)
 {
     public PdfOpenFailure Failure { get; } = failure;
+
+    /// <summary>
+    /// The renderers report "needs a password" and "that password is wrong" the same way; only the
+    /// caller knows which of the two happened: without a password it is the first.
+    /// </summary>
+    public static PdfOpenException Protected(string? password, Exception innerException) =>
+        new(password is null ? PdfOpenFailure.PasswordProtected : PdfOpenFailure.WrongPassword,
+            "The document is password protected.", innerException);
 }
 
 /// <summary>

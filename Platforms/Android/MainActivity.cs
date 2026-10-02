@@ -42,6 +42,8 @@ public class MainActivity : MauiAppCompatActivity
     protected override void OnCreate(Bundle? savedInstanceState)
     {
         base.OnCreate(savedInstanceState);
+        AppPlatform.MoveTaskToBack = () => MoveTaskToBack(true);
+        AppPlatform.StartEmailChooser = StartEmailChooser;
         ApplySystemBarInsets();
         HandleIncomingPdf(Intent);
     }
@@ -85,77 +87,61 @@ public class MainActivity : MauiAppCompatActivity
 
     /// <summary>
     /// Copies a PDF handed over by another app into our cache and queues it for the library,
-    /// which may not be on screen yet when the intent arrives.
+    /// which may not be on screen yet when the intent arrives (Services/IncomingDocuments.cs).
     /// </summary>
     private void HandleIncomingPdf(Intent? intent)
     {
-        if (intent?.Action != Intent.ActionView || intent.Data is null)
+        if (intent?.Action != Intent.ActionView || intent.Data is not { } uri)
             return;
 
-        var uri = intent.Data;
         var services = IPlatformApplication.Current?.Services;
         var queue = services?.GetService<PendingDocumentQueue>();
         var logger = services?.GetService<ILogger<MainActivity>>();
-
         if (queue is null)
         {
             logger?.LogError("The document queue is not available; the incoming PDF was ignored.");
             return;
         }
 
-        var displayName = ResolveDisplayName(uri, logger);
+        var displayName = IncomingDocuments.DisplayName(QueryDisplayName(uri), uri.LastPathSegment);
         var resolver = ContentResolver;
-        var cacheFolder = Path.Combine(CacheDir?.AbsolutePath ?? FileSystem.CacheDirectory, "incoming");
+        var cacheFolder = IncomingDocuments.CacheFolder(CacheDir?.AbsolutePath ?? FileSystem.CacheDirectory);
 
-        _ = Task.Run(() =>
-        {
-            try
-            {
-                using var source = resolver?.OpenInputStream(uri)
-                    ?? throw new IOException($"Could not read {uri}.");
-
-                Directory.CreateDirectory(cacheFolder);
-                var temporaryPath = Path.Combine(cacheFolder, $"{Guid.NewGuid():N}.pdf");
-
-                using (var destination = File.Create(temporaryPath))
-                {
-                    source.CopyTo(destination);
-                }
-
-                queue.Enqueue(new PendingDocument(temporaryPath, displayName));
-            }
-            catch (Exception ex)
-            {
-                // No page is on screen yet to hold an alert; the log is the honest record.
-                logger?.LogError(ex, "Could not read the incoming PDF from {Uri}.", uri);
-            }
-        });
+        _ = Task.Run(() => IncomingDocuments.CopyAndQueue(() => resolver?.OpenInputStream(uri), displayName, cacheFolder, queue,
+            ex => logger?.LogError(ex, "Could not read the incoming PDF from {Uri}.", uri)));
     }
 
-    private string ResolveDisplayName(AndroidUri uri, ILogger? logger)
+    private string? QueryDisplayName(AndroidUri uri)
     {
         try
         {
-            if (uri.Scheme == "content" && ContentResolver is not null)
-            {
-                using var cursor = ContentResolver.Query(uri, [IOpenableColumns.DisplayName], null, null, null);
-                if (cursor is not null && cursor.MoveToFirst())
-                {
-                    var name = cursor.GetString(0);
-                    if (!string.IsNullOrWhiteSpace(name))
-                        return name;
-                }
-            }
-
-            var lastSegment = uri.LastPathSegment;
-            if (!string.IsNullOrWhiteSpace(lastSegment))
-                return Path.GetFileName(lastSegment);
+            if (uri.Scheme != "content" || ContentResolver is null)
+                return null;
+            using var cursor = ContentResolver.Query(uri, [IOpenableColumns.DisplayName], null, null, null);
+            return cursor is not null && cursor.MoveToFirst() ? cursor.GetString(0) : null;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            logger?.LogWarning(ex, "Could not resolve the name of {Uri}.", uri);
+            return null;
         }
+    }
 
-        return "document.pdf";
+    /// <summary>
+    /// Opens the system chooser with every installed email app, which is more reliable than
+    /// letting the platform pick one for us.
+    /// </summary>
+    private bool StartEmailChooser(string to, string subject, string body, string chooserTitle)
+    {
+        var intent = new Intent(Intent.ActionSendto);
+        intent.SetData(AndroidUri.Parse($"mailto:{to}"));
+        intent.PutExtra(Intent.ExtraSubject, subject);
+        intent.PutExtra(Intent.ExtraText, body);
+
+        var chooser = Intent.CreateChooser(intent, chooserTitle);
+        if (chooser is null)
+            return false;
+
+        StartActivity(chooser);
+        return true;
     }
 }

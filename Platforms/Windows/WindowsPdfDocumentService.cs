@@ -37,15 +37,10 @@ public class WindowsPdfDocumentService : IPdfDocumentService
                 : await PdfDocument.LoadFromFileAsync(file, password);
             return new WindowsPdfDocument(document);
         }
-        catch (Exception ex) when ((uint)ex.HResult == 0x8007052E) // ERROR_LOGON_FAILURE: "wrong password"
+        // ERROR_LOGON_FAILURE ("wrong password") and E_ACCESSDENIED (also used for encrypted PDFs).
+        catch (Exception ex) when ((uint)ex.HResult is 0x8007052E or 0x80070005)
         {
-            var failure = password is null ? PdfOpenFailure.PasswordProtected : PdfOpenFailure.WrongPassword;
-            throw new PdfOpenException(failure, "The document is password protected.", ex);
-        }
-        catch (Exception ex) when (ex.HResult == unchecked((int)0x80070005)) // E_ACCESSDENIED: also used for encrypted PDFs
-        {
-            var failure = password is null ? PdfOpenFailure.PasswordProtected : PdfOpenFailure.WrongPassword;
-            throw new PdfOpenException(failure, "The document is password protected.", ex);
+            throw PdfOpenException.Protected(password, ex);
         }
         catch (PdfOpenException)
         {
@@ -57,67 +52,35 @@ public class WindowsPdfDocumentService : IPdfDocumentService
         }
     }
 
-    private sealed class WindowsPdfDocument(PdfDocument document) : IPdfDocument
+    /// <summary>The native part only: the shared rules live in <see cref="PdfDocumentBase"/>.</summary>
+    private sealed class WindowsPdfDocument(PdfDocument document) : PdfDocumentBase((int)document.PageCount)
     {
-        private readonly SemaphoreSlim _gate = new(1, 1);
-        private bool _disposed;
+        public override bool SupportsTextSearch => false;
 
-        public int PageCount => (int)document.PageCount;
-
-        public bool SupportsTextSearch => false;
-
-        public async Task<double> GetPageAspectRatioAsync(int pageIndex)
+        protected override (double Width, double Height) MeasurePage(int pageIndex)
         {
-            await _gate.WaitAsync();
-            try
-            {
-                ThrowIfDisposed();
-                using var page = document.GetPage((uint)pageIndex);
-                var size = page.Size;
-                return size.Width <= 0 ? 1.4142 : size.Height / size.Width;
-            }
-            finally
-            {
-                _gate.Release();
-            }
+            using var page = document.GetPage((uint)pageIndex);
+            return (page.Size.Width, page.Size.Height);
         }
 
-        public async Task<byte[]> RenderPageAsync(int pageIndex, int targetWidthPixels, IReadOnlyList<PdfTextMatch>? highlights = null)
+        protected override async Task<byte[]> RenderPngAsync(int pageIndex, int targetWidthPixels, IReadOnlyList<PdfTextMatch> highlights)
         {
-            await _gate.WaitAsync();
-            try
+            using var page = document.GetPage((uint)pageIndex);
+            using var stream = new InMemoryRandomAccessStream();
+            var options = new PdfPageRenderOptions
             {
-                ThrowIfDisposed();
-                using var page = document.GetPage((uint)pageIndex);
-                using var stream = new InMemoryRandomAccessStream();
-                var options = new PdfPageRenderOptions
-                {
-                    DestinationWidth = (uint)Math.Max(1, targetWidthPixels),
-                    BackgroundColor = global::Windows.UI.Color.FromArgb(255, 255, 255, 255),
-                };
-                await page.RenderToStreamAsync(stream, options);
+                DestinationWidth = (uint)Math.Max(1, targetWidthPixels),
+                BackgroundColor = global::Windows.UI.Color.FromArgb(255, 255, 255, 255),
+            };
+            await page.RenderToStreamAsync(stream, options);
 
-                var bytes = new byte[stream.Size];
-                using var reader = new DataReader(stream.GetInputStreamAt(0));
-                await reader.LoadAsync((uint)stream.Size);
-                reader.ReadBytes(bytes);
-                return bytes;
-            }
-            finally
-            {
-                _gate.Release();
-            }
+            var bytes = new byte[stream.Size];
+            using var reader = new DataReader(stream.GetInputStreamAt(0));
+            await reader.LoadAsync((uint)stream.Size);
+            reader.ReadBytes(bytes);
+            return bytes;
         }
 
-        public Task<IReadOnlyList<PdfTextMatch>> SearchAsync(string query, CancellationToken cancellationToken = default) =>
-            Task.FromResult<IReadOnlyList<PdfTextMatch>>([]);
-
-        private void ThrowIfDisposed() => ObjectDisposedException.ThrowIf(_disposed, this);
-
-        public void Dispose()
-        {
-            _disposed = true;
-            _gate.Dispose();
-        }
+        protected override void ReleaseNative() { }
     }
 }

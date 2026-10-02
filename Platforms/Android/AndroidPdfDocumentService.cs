@@ -43,10 +43,9 @@ public class AndroidPdfDocumentService : IPdfDocumentService
             catch (Java.Lang.SecurityException ex)
             {
                 // PdfRenderer reports both "needs a password" and "that password is wrong" as a
-                // SecurityException; only the caller knows which of the two happened.
+                // SecurityException.
                 descriptor?.Dispose();
-                var failure = password is null ? PdfOpenFailure.PasswordProtected : PdfOpenFailure.WrongPassword;
-                throw new PdfOpenException(failure, "The document is password protected.", ex);
+                throw PdfOpenException.Protected(password, ex);
             }
             catch (Java.IO.IOException ex)
             {
@@ -91,190 +90,94 @@ public class AndroidPdfDocumentService : IPdfDocumentService
         return new PdfRenderer(descriptor, loadParams);
     }
 
-    private sealed class AndroidPdfDocument : IPdfDocument
+    /// <summary>The native part only: the shared rules live in <see cref="PdfDocumentBase"/>.</summary>
+    private sealed class AndroidPdfDocument(PdfRenderer renderer, ParcelFileDescriptor descriptor)
+        : PdfDocumentBase(renderer.PageCount)
     {
-        // PdfRenderer allows a single open page at a time, so every access is serialized.
-        private readonly SemaphoreSlim _gate = new(1, 1);
-        private readonly PdfRenderer _renderer;
-        private readonly ParcelFileDescriptor _descriptor;
-        private bool _disposed;
+        public override bool SupportsTextSearch => OperatingSystem.IsAndroidVersionAtLeast(35);
 
-        // A search that matched tens of thousands of times would stall the reader for no benefit:
-        // nobody steps through that many hits, and every page has to be opened to find them.
-        private const int MaxMatches = 500;
-
-        public int PageCount { get; }
-
-        public bool SupportsTextSearch => OperatingSystem.IsAndroidVersionAtLeast(35);
-
-        public AndroidPdfDocument(PdfRenderer renderer, ParcelFileDescriptor descriptor)
+        protected override (double Width, double Height) MeasurePage(int pageIndex)
         {
-            _renderer = renderer;
-            _descriptor = descriptor;
-            PageCount = renderer.PageCount;
-        }
-
-        public async Task<double> GetPageAspectRatioAsync(int pageIndex)
-        {
-            ValidatePageIndex(pageIndex);
-
-            await _gate.WaitAsync().ConfigureAwait(false);
+            var page = OpenPage(pageIndex);
             try
             {
-                ObjectDisposedException.ThrowIf(_disposed, this);
-
-                var page = OpenPage(pageIndex);
-                try
-                {
-                    return PdfPageMath.AspectRatio(page.Width, page.Height);
-                }
-                finally
-                {
-                    ClosePage(page);
-                }
+                return (page.Width, page.Height);
             }
             finally
             {
-                _gate.Release();
+                ClosePage(page);
             }
         }
 
-        public async Task<byte[]> RenderPageAsync(
-            int pageIndex,
-            int targetWidthPixels,
-            IReadOnlyList<PdfTextMatch>? highlights = null)
+        protected override async Task<byte[]> RenderPngAsync(int pageIndex, int targetWidthPixels, IReadOnlyList<PdfTextMatch> highlights)
         {
-            ValidatePageIndex(pageIndex);
-
-            await _gate.WaitAsync().ConfigureAwait(false);
+            PdfRenderer.Page? page = OpenPage(pageIndex);
+            Bitmap? bitmap = null;
             try
             {
-                ObjectDisposedException.ThrowIf(_disposed, this);
+                var (width, height) = PdfPageMath.ScalePage(page.Width, page.Height, targetWidthPixels);
 
-                var page = OpenPage(pageIndex);
-                Bitmap? bitmap = null;
-                try
-                {
-                    var (width, height) = PdfPageMath.ScalePage(page.Width, page.Height, targetWidthPixels);
+                bitmap = Bitmap.CreateBitmap(width, height, Bitmap.Config.Argb8888!)
+                    ?? throw new InvalidOperationException($"Could not allocate a {width}x{height} bitmap.");
 
-                    bitmap = Bitmap.CreateBitmap(width, height, Bitmap.Config.Argb8888!)
-                        ?? throw new InvalidOperationException($"Could not allocate a {width}x{height} bitmap.");
+                // PDF pages are transparent where there is no ink; paint the paper white first.
+                bitmap.EraseColor(AndroidColor.White.ToArgb());
+                page.Render(bitmap, null, null, PdfRenderMode.ForDisplay);
 
-                    // PDF pages are transparent where there is no ink; paint the paper white first.
-                    bitmap.EraseColor(AndroidColor.White.ToArgb());
-                    page.Render(bitmap, null, null, PdfRenderMode.ForDisplay);
+                // The page must be closed before anything else touches the renderer.
+                ClosePage(page);
+                page = null;
 
-                    // The page must be closed before anything else touches the renderer.
-                    ClosePage(page);
-                    page = null;
+                if (highlights.Count > 0)
+                    DrawHighlights(bitmap, highlights);
 
-                    if (highlights is { Count: > 0 })
-                        DrawHighlights(bitmap, highlights, pageIndex);
-
-                    using var stream = new MemoryStream();
-                    await bitmap.CompressAsync(Bitmap.CompressFormat.Png!, 100, stream).ConfigureAwait(false);
-                    return stream.ToArray();
-                }
-                finally
-                {
-                    if (page is not null)
-                        ClosePage(page);
-
-                    if (bitmap is not null)
-                    {
-                        bitmap.Recycle();
-                        bitmap.Dispose();
-                    }
-                }
+                using var stream = new MemoryStream();
+                await bitmap.CompressAsync(Bitmap.CompressFormat.Png!, 100, stream).ConfigureAwait(false);
+                return stream.ToArray();
             }
             finally
             {
-                _gate.Release();
+                if (page is not null)
+                    ClosePage(page);
+
+                if (bitmap is not null)
+                {
+                    bitmap.Recycle();
+                    bitmap.Dispose();
+                }
             }
         }
 
-        public async Task<IReadOnlyList<PdfTextMatch>> SearchAsync(
-            string query,
-            CancellationToken cancellationToken = default)
+        protected override IEnumerable<PdfTextMatch> SearchPage(int pageIndex, string query)
         {
-            // The version check is repeated here rather than read from SupportsTextSearch so that the
-            // platform analyser can see that SearchText is only reached on API 35 and later.
-            if (string.IsNullOrWhiteSpace(query) || !OperatingSystem.IsAndroidVersionAtLeast(35))
+            // Repeated here so that the platform analyser can see that SearchText is only reached on API 35.
+            if (!OperatingSystem.IsAndroidVersionAtLeast(35))
                 return [];
 
-            var matches = new List<PdfTextMatch>();
-
-            for (var pageIndex = 0; pageIndex < PageCount; pageIndex++)
+            var page = OpenPage(pageIndex);
+            try
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
-                try
-                {
-                    ObjectDisposedException.ThrowIf(_disposed, this);
-
-                    var page = OpenPage(pageIndex);
-                    try
-                    {
-                        CollectMatches(page, pageIndex, query, matches);
-                    }
-                    finally
-                    {
-                        ClosePage(page);
-                    }
-                }
-                finally
-                {
-                    _gate.Release();
-                }
-
-                if (matches.Count >= MaxMatches)
-                    break;
+                return CollectMatches(page, pageIndex, query);
             }
-
-            return matches;
+            finally
+            {
+                ClosePage(page);
+            }
         }
 
+        // One hit spans several rectangles when it wraps across lines. The union of them is what
+        // the reader highlights, so a wrapped match stays a single result to step through.
         [SupportedOSPlatform("android35.0")]
-        private static void CollectMatches(
-            PdfRenderer.Page page,
-            int pageIndex,
-            string query,
-            List<PdfTextMatch> matches)
-        {
-            var found = page.SearchText(query);
-            if (found is null || found.Count == 0)
-                return;
-
-            double pageWidth = page.Width;
-            double pageHeight = page.Height;
-            if (pageWidth <= 0 || pageHeight <= 0)
-                return;
-
-            foreach (var match in found)
-            {
-                // One hit spans several rectangles when it wraps across lines. The union of them is
-                // what the reader highlights, so a wrapped match stays a single result to step through.
-                var bounds = match.Bounds;
-                if (bounds is null || bounds.Count == 0)
-                    continue;
-
-                var normalized = PdfPageMath.NormalizeMatch(
-                    pageIndex,
-                    bounds.Select(r => (r.Left, r.Top, r.Right, r.Bottom)),
-                    pageWidth,
-                    pageHeight);
-
-                if (normalized is not null)
-                    matches.Add(normalized);
-
-                if (matches.Count >= MaxMatches)
-                    return;
-            }
-        }
+        private static List<PdfTextMatch> CollectMatches(PdfRenderer.Page page, int pageIndex, string query) =>
+            (page.SearchText(query) ?? [])
+                .Where(match => match.Bounds is { Count: > 0 })
+                .Select(match => PdfPageMath.NormalizeMatch(pageIndex,
+                    match.Bounds!.Select(r => (r.Left, r.Top, r.Right, r.Bottom)), page.Width, page.Height))
+                .OfType<PdfTextMatch>()
+                .ToList();
 
         private PdfRenderer.Page OpenPage(int pageIndex) =>
-            _renderer.OpenPage(pageIndex)
+            renderer.OpenPage(pageIndex)
                 ?? throw new InvalidOperationException($"Page {pageIndex} could not be opened.");
 
         /// <summary>
@@ -287,8 +190,8 @@ public class AndroidPdfDocumentService : IPdfDocumentService
             page.Dispose();
         }
 
-        /// <summary>Paints a translucent marker over each match that falls on this page.</summary>
-        private static void DrawHighlights(Bitmap bitmap, IReadOnlyList<PdfTextMatch> highlights, int pageIndex)
+        /// <summary>Paints a translucent marker over each match.</summary>
+        private static void DrawHighlights(Bitmap bitmap, IReadOnlyList<PdfTextMatch> highlights)
         {
             using var canvas = new Canvas(bitmap);
             using var paint = new AndroidPaint { AntiAlias = true };
@@ -296,44 +199,17 @@ public class AndroidPdfDocumentService : IPdfDocumentService
 
             foreach (var match in highlights)
             {
-                if (match.PageIndex != pageIndex)
-                    continue;
-
-                canvas.DrawRect(
-                    (float)(match.Left * bitmap.Width),
-                    (float)(match.Top * bitmap.Height),
-                    (float)(match.Right * bitmap.Width),
-                    (float)(match.Bottom * bitmap.Height),
-                    paint);
+                var (left, top, right, bottom) = ToPixels(match, bitmap.Width, bitmap.Height);
+                canvas.DrawRect(left, top, right, bottom, paint);
             }
         }
 
-        private void ValidatePageIndex(int pageIndex)
+        protected override void ReleaseNative()
         {
-            if (pageIndex < 0 || pageIndex >= PageCount)
-                throw new ArgumentOutOfRangeException(nameof(pageIndex), pageIndex, $"The document has {PageCount} pages.");
-        }
-
-        public void Dispose()
-        {
-            if (_disposed)
-                return;
-
-            _disposed = true;
-
-            _gate.Wait();
-            try
-            {
-                _renderer.Close();
-                _renderer.Dispose();
-                _descriptor.Close();
-                _descriptor.Dispose();
-            }
-            finally
-            {
-                _gate.Release();
-                _gate.Dispose();
-            }
+            renderer.Close();
+            renderer.Dispose();
+            descriptor.Close();
+            descriptor.Dispose();
         }
     }
 }

@@ -6,6 +6,29 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 sigue la sección 6 de la constitución: `ApplicationDisplayVersion` legible por el usuario y
 `ApplicationVersion` entero incremental para Play Store.
 
+## 2026.10.02.0 (2026100200)
+
+### Cambiado
+- Lo que se repetía en el lector de Android y en el de Windows (una página a la vez, índices
+  válidos, documento cerrado, tope de 500 resultados de búsqueda, resaltado solo en su página) pasa
+  a `Services/PdfDocumentBase.cs`; cada plataforma solo hace su parte nativa. La copia de los PDF
+  que llegan de otras apps o del Explorador, a `Services/IncomingDocuments.cs`, y lo que las
+  pantallas piden al dispositivo (selector, correo, navegador, pantalla, diálogos), a
+  `Services/AppPlatform.cs`. La app hace lo mismo; así se puede probar.
+- El correo de contacto en Android abre el selector del sistema desde la actividad principal.
+
+### Pruebas
+- El banco (General §8.6) pasa de 69 a 151 pruebas y ahora recorre las pantallas con su XAML real:
+  biblioteca (abrir, importar, contraseña, PDF no válidos, borrar, documentos de otras apps, atrás),
+  lector (página guardada, pasar página, zoom, pellizco, arrastre, ir a página, búsqueda y sus
+  resultados, errores, cambio de tamaño), contraseña, Acerca de y la comprobación de versión.
+  Cobertura sobre toda la app: **84,1 %** (antes 15,0 % con el recuento anterior). No llega al 90 %:
+  lo que falta es casi todo código nativo de Android y Windows (plan en el fichero de tareas).
+
+*English:* The rules shared by the Android and Windows renderers, the import of PDFs sent by other
+apps and the device services used by the pages are now separate, testable classes; the app behaves
+the same. Tests: 151, 84.1 % line coverage of the whole app.
+
 ## 2026.09.30.0 (2026093000)
 
 ### Corregido

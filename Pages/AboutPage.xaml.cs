@@ -29,13 +29,12 @@ public partial class AboutPage : ContentPage
         Title = _localization["about_title"];
 
         AppNameLabel.Text = _localization["app_name"];
-        VersionLabel.Text = _localization.Format("version", AppInfo.Current.VersionString);
+        VersionLabel.Text = _localization.Format("version", AppPlatform.AppInfo.VersionString);
         TaglineLabel.Text = _localization["app_tagline"];
 
         ContactTitleLabel.Text = _localization["contact_title"];
         ContactButton.Text = ContactEmail;
         ContactHintLabel.Text = _localization["contact_hint"];
-
 
         LanguageTitleLabel.Text = _localization["language_title"];
         LanguageHintLabel.Text = _localization["language_hint"];
@@ -98,15 +97,15 @@ public partial class AboutPage : ContentPage
     {
         var appName = _localization["app_name"];
         var subject = _localization["email_subject"];
-        var body = _localization.Format("email_body", appName, AppInfo.Current.VersionString);
+        var body = _localization.Format("email_body", appName, AppPlatform.AppInfo.VersionString);
 
         try
         {
-#if ANDROID
-            if (TryStartEmailIntent(subject, body))
+            // En Android, el selector del sistema con todas las apps de correo (MainActivity).
+            if (AppPlatform.StartEmailChooser(ContactEmail, subject, body, _localization["email_chooser"]))
                 return;
-#endif
-            await Email.Default.ComposeAsync(new EmailMessage
+
+            await AppPlatform.Email.ComposeAsync(new EmailMessage
             {
                 Subject = subject,
                 Body = body,
@@ -125,33 +124,8 @@ public partial class AboutPage : ContentPage
         }
     }
 
-#if ANDROID
-    /// <summary>
-    /// Opens the system chooser with every installed email app, which is more reliable than
-    /// letting the platform pick one for us.
-    /// </summary>
-    private bool TryStartEmailIntent(string subject, string body)
-    {
-        var context = Platform.CurrentActivity ?? (Android.Content.Context)Android.App.Application.Context;
-
-        var intent = new Android.Content.Intent(Android.Content.Intent.ActionSendto);
-        intent.SetData(Android.Net.Uri.Parse($"mailto:{ContactEmail}"));
-        intent.PutExtra(Android.Content.Intent.ExtraSubject, subject);
-        intent.PutExtra(Android.Content.Intent.ExtraText, body);
-
-        var chooser = Android.Content.Intent.CreateChooser(intent, _localization["email_chooser"]);
-        if (chooser is null)
-            return false;
-
-        if (context is not Android.App.Activity)
-            chooser.AddFlags(Android.Content.ActivityFlags.NewTask);
-
-        context.StartActivity(chooser);
-        return true;
-    }
-#endif
 
 
     private Task ShowAlertAsync(string title, string message) =>
-        SocShared.ModernDialog.AlertAsync(this, title, message, _localization["ok"]);
+        AppPlatform.Alert(this, title, message, _localization["ok"], null);
 }

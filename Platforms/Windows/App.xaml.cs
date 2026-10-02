@@ -27,33 +27,16 @@ public partial class App : MauiWinUIApplication
     /// </summary>
     private static void HandleCommandLine()
     {
-        var paths = Environment.GetCommandLineArgs().Skip(1)
-            .Where(a => a.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase) && File.Exists(a))
-            .ToList();
-        if (paths.Count == 0)
-            return;
-
+        var paths = PDFReader.Services.IncomingDocuments.PdfArguments(Environment.GetCommandLineArgs());
         var queue = IPlatformApplication.Current?.Services.GetService<PDFReader.Services.PendingDocumentQueue>();
-        if (queue is null)
+        if (paths.Count == 0 || queue is null)
             return;
 
-        var cacheFolder = Path.Combine(FileSystem.CacheDirectory, "incoming");
+        var cacheFolder = PDFReader.Services.IncomingDocuments.CacheFolder(FileSystem.CacheDirectory);
         _ = Task.Run(() =>
         {
             foreach (var path in paths)
-            {
-                try
-                {
-                    Directory.CreateDirectory(cacheFolder);
-                    var temporaryPath = Path.Combine(cacheFolder, $"{Guid.NewGuid():N}.pdf");
-                    File.Copy(path, temporaryPath, overwrite: true);
-                    queue.Enqueue(new PDFReader.Services.PendingDocument(temporaryPath, Path.GetFileName(path)));
-                }
-                catch (Exception)
-                {
-                    // Sin pagina en pantalla todavia no hay donde avisar; se sigue con el siguiente.
-                }
-            }
+                PDFReader.Services.IncomingDocuments.CopyAndQueue(() => File.OpenRead(path), Path.GetFileName(path), cacheFolder, queue);
         });
     }
 }
