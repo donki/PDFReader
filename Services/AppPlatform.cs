@@ -12,6 +12,7 @@ public static class AppPlatform
     private static IBrowser? _browser;
     private static IAppInfo? _appInfo;
     private static IDeviceDisplay? _deviceDisplay;
+    private static IShare? _share;
 
     public static IFilePicker FilePicker { get => _filePicker ??= Microsoft.Maui.Storage.FilePicker.Default; set => _filePicker = value; }
 
@@ -22,6 +23,8 @@ public static class AppPlatform
     public static IAppInfo AppInfo { get => _appInfo ??= Microsoft.Maui.ApplicationModel.AppInfo.Current; set => _appInfo = value; }
 
     public static IDeviceDisplay DeviceDisplay { get => _deviceDisplay ??= Microsoft.Maui.Devices.DeviceDisplay.Current; set => _deviceDisplay = value; }
+
+    public static IShare Share { get => _share ??= Microsoft.Maui.ApplicationModel.DataTransfer.Share.Default; set => _share = value; }
 
     /// <summary>Tipo de fichero PDF para el selector (el de MAUI depende de la plataforma).</summary>
     public static Func<FilePickerFileType?> PdfFileType { get; set; } = () => FilePickerFileType.Pdf;

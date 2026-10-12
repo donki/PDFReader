@@ -121,6 +121,8 @@ public class LocalizationService : ILocalizationService
         ["open"] = "Abrir",
 
         // Búsqueda
+        ["share"] = "Compartir",
+        ["error_share"] = "No se ha podido compartir el documento: {0}",
         ["search"] = "Buscar",
         ["search_placeholder"] = "Buscar en el documento",
         ["searching"] = "Buscando…",
@@ -224,6 +226,8 @@ public class LocalizationService : ILocalizationService
         ["open"] = "Open",
 
         // Search
+        ["share"] = "Share",
+        ["error_share"] = "The document could not be shared: {0}",
         ["search"] = "Search",
         ["search_placeholder"] = "Search in the document",
         ["searching"] = "Searching…",

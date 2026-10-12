@@ -1,5 +1,6 @@
 using System.Globalization;
 using Microsoft.Extensions.Logging;
+using Microsoft.Maui.ApplicationModel.DataTransfer;
 using PDFReader.Models;
 using PDFReader.Services;
 
@@ -101,6 +102,12 @@ public partial class ReaderPage : ContentPage
 
         Title = entry.DisplayName;
         BusyLabel.Text = _localization["loading_page"];
+        ShareToolbarItem.Text = _localization["share"];
+#if ANDROID
+        ShareToolbarItem.IconImageSource = "ic_share_dark.png";
+#else
+        ShareToolbarItem.SetAppTheme<FileImageSource>(MenuItem.IconImageSourceProperty, "ic_share.png", "ic_share_dark.png");
+#endif
         _pageIndex = Math.Max(0, entry.LastPageIndex);
 
         // A window on the desktop gets resized; the page must follow. Debounced, because a drag
@@ -740,6 +747,37 @@ public partial class ReaderPage : ContentPage
         await _searchCancellation.CancelAsync();
         _searchCancellation.Dispose();
         _searchCancellation = null;
+    }
+
+    private bool _sharing;
+
+    /// <summary>Envia el PDF abierto a otra app con la hoja de compartir del sistema.</summary>
+    private async void OnShareClicked(object? sender, EventArgs e)
+    {
+        if (_sharing)
+            return; // Un doble toque no abre dos hojas.
+
+        _sharing = true;
+        try
+        {
+            var path = await DocumentSharing.PrepareAsync(
+                _library.GetFilePath(_entry), _entry.DisplayName, FileSystem.CacheDirectory);
+
+            await AppPlatform.Share.RequestAsync(new ShareFileRequest
+            {
+                Title = _entry.DisplayName,
+                File = new ShareFile(path, DocumentSharing.ContentType)
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Could not share {Document}.", _entry.DisplayName);
+            await ShowAlertAsync(_localization["error"], _localization.Format("error_share", ex.Message));
+        }
+        finally
+        {
+            _sharing = false;
+        }
     }
 
     private string DescribeFailure(PdfOpenFailure failure) => failure switch

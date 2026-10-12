@@ -4,6 +4,15 @@
              x:Class="PDFReader.Pages.ReaderPage"
              BackgroundColor="{AppThemeBinding Light={StaticResource CanvasLight}, Dark={StaticResource CanvasDark}}">
 
+    <!-- Compartir el documento, arriba a la derecha en la barra de navegacion. El icono lo pone el
+         codigo: la barra de Android es del color de la marca en los dos temas, la de Windows no. -->
+    <ContentPage.ToolbarItems>
+        <ToolbarItem x:Name="ShareToolbarItem"
+                     Order="Primary"
+                     Priority="0"
+                     Clicked="OnShareClicked" />
+    </ContentPage.ToolbarItems>
+
     <Grid RowDefinitions="Auto,*,Auto">
 
         <!-- Barra de busqueda: oculta hasta que se pulsa la lupa, y no disponible

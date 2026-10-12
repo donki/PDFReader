@@ -6,6 +6,20 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 sigue la sección 6 de la constitución: `ApplicationDisplayVersion` legible por el usuario y
 `ApplicationVersion` entero incremental para Play Store.
 
+## 2026.10.11.0 (2026101100)
+
+### Añadido
+- Botón de compartir arriba a la derecha del lector: envía el PDF abierto a otra app (correo,
+  mensajería, Drive…) con la hoja de compartir del sistema. Se comparte con su nombre de verdad, no
+  con el id con el que lo guarda la biblioteca (`Services/DocumentSharing.cs`).
+
+### Pruebas
+- 161 pruebas (antes 151): nombre y copia del fichero compartido, y el botón del lector con su
+  error.
+
+*English:* New share button at the top right of the reader: sends the open PDF to another app with
+the system share sheet, under its real file name.
+
 ## 2026.10.02.0 (2026100200)
 
 ### Cambiado

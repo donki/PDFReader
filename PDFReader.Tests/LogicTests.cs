@@ -7,6 +7,36 @@ using PDFReader.Services;
 
 namespace PDFReader.Tests;
 
+public class DocumentSharingTests
+{
+    [Theory]
+    [InlineData("Manual.pdf", "Manual.pdf")]
+    [InlineData("Factura marzo", "Factura marzo.pdf")]
+    [InlineData("informe.PDF", "informe.PDF")]
+    [InlineData("a:b*c?.pdf", "a_b_c_.pdf")]
+    [InlineData("carpeta/otro.pdf", "otro.pdf")]
+    [InlineData("  ", DocumentSharing.FallbackName)]
+    [InlineData(null, DocumentSharing.FallbackName)]
+    public void FileName_IsTheDisplayName_SafeAndEndingInPdf(string? displayName, string expected) =>
+        Assert.Equal(expected, DocumentSharing.FileName(displayName));
+
+    [Fact]
+    public async Task Prepare_CopiesWithTheRealName_AndClearsThePreviousCopy()
+    {
+        using var temp = new TempFolder();
+        var source = temp.File("library/0a1b.pdf", "%PDF-1.7");
+        var cache = temp.Combine("cache");
+
+        var first = await DocumentSharing.PrepareAsync(source, "Primero.pdf", cache);
+        var second = await DocumentSharing.PrepareAsync(source, "Segundo", cache);
+
+        Assert.False(File.Exists(first));
+        Assert.Equal(Path.Combine(DocumentSharing.CacheFolder(cache), "Segundo.pdf"), second);
+        Assert.Equal("%PDF-1.7", File.ReadAllText(second));
+        Assert.True(File.Exists(source));
+    }
+}
+
 public class PdfPageMathTests
 {
     [Theory]

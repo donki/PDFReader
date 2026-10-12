@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.ApplicationModel.Communication;
+using Microsoft.Maui.ApplicationModel.DataTransfer;
 using Microsoft.Maui.Devices;
 using Microsoft.Maui.Dispatching;
 using Microsoft.Maui.Storage;
@@ -43,6 +44,23 @@ public sealed class FakeEmail : IEmail
         Sent = message;
         return Task.CompletedTask;
     }
+}
+
+public sealed class FakeShare : IShare
+{
+    public Exception? Throws { get; set; }
+    public List<ShareFileRequest> Files { get; } = new();
+
+    public Task RequestAsync(ShareTextRequest request) => Task.CompletedTask;
+
+    public Task RequestAsync(ShareFileRequest request)
+    {
+        if (Throws is not null) throw Throws;
+        Files.Add(request);
+        return Task.CompletedTask;
+    }
+
+    public Task RequestAsync(ShareMultipleFilesRequest request) => Task.CompletedTask;
 }
 
 public sealed class FakeBrowser : IBrowser
@@ -144,6 +162,7 @@ public sealed class AppHarness : IDisposable
     public FakeFilePicker Picker { get; } = new();
     public FakeEmail Email { get; } = new();
     public FakeBrowser Browser { get; } = new();
+    public FakeShare Share { get; } = new();
     public FakeAppInfo AppInfo { get; } = new();
     public FakeDeviceDisplay Display { get; } = new();
     public FakePdfService Pdf { get; } = new();
@@ -171,12 +190,14 @@ public sealed class AppHarness : IDisposable
     public AppHarness(string language = "en")
     {
         FileSystem.AppDataDirectory = Temp.Path;
+        FileSystem.CacheDirectory = Temp.Combine("cache");
         Preferences.Default.Clear();
         Preferences.Default.Set("app_language", language);
 
         AppPlatform.FilePicker = Picker;
         AppPlatform.Email = Email;
         AppPlatform.Browser = Browser;
+        AppPlatform.Share = Share;
         AppPlatform.AppInfo = AppInfo;
         AppPlatform.DeviceDisplay = Display;
         AppPlatform.Alert = (page, title, message, accept, cancel) =>

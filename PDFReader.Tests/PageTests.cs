@@ -543,6 +543,37 @@ public sealed class ReaderPageTests : IDisposable
     }
 
     [Fact]
+    public async Task Share_SendsTheDocument_WithItsName()
+    {
+        var (reader, _) = await OpenAsync();
+        var item = Assert.Single(reader.ToolbarItems);
+        Assert.Equal(_h.Localization["share"], item.Text);
+        Assert.NotNull(item.IconImageSource);
+
+        ((IMenuItemController)item).Activate();
+
+        await Eventually.TrueAsync(() => _h.Share.Files.Count == 1);
+        var request = _h.Share.Files[0];
+        Assert.Equal("libro.pdf", request.Title);
+        Assert.Equal("libro.pdf", Path.GetFileName(request.File!.FullPath));
+        Assert.Equal(DocumentSharing.ContentType, request.File.ContentType);
+        Assert.Equal("%PDF-1.7", File.ReadAllText(request.File.FullPath));
+        Assert.Empty(_h.Alerts);
+    }
+
+    [Fact]
+    public async Task ShareFailure_IsShown()
+    {
+        var (reader, _) = await OpenAsync();
+        _h.Share.Throws = new InvalidOperationException("sin apps");
+
+        ((IMenuItemController)reader.ToolbarItems[0]).Activate();
+
+        await Eventually.TrueAsync(() => _h.Alerts.Count == 1);
+        Assert.Contains("sin apps", _h.Alerts[0].Message);
+    }
+
+    [Fact]
     public async Task RenderFailure_IsShown()
     {
         _h.Pdf.Document = new FakePdfDocument(3) { RenderThrows = new OutOfMemoryException("sin memoria") };

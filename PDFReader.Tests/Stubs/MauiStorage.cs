@@ -6,6 +6,8 @@ public static class FileSystem
 {
     /// <summary>Cada prueba apunta la carpeta de datos a su propia carpeta temporal.</summary>
     public static string AppDataDirectory { get; set; } = Path.GetTempPath();
+
+    public static string CacheDirectory { get; set; } = Path.GetTempPath();
 }
 
 public sealed class InMemoryPreferences
